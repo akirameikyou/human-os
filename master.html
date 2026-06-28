@@ -1,1 +1,730 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Human OS Institute</title>
 
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:#06001f;
+  color:#f4f1ff;
+  font-family:"Yu Mincho","Hiragino Mincho ProN","Times New Roman",serif;
+  line-height:1.9;
+}
+a{color:inherit;text-decoration:none}
+button{font:inherit}
+
+/* COVER */
+.cover{
+  position:relative;width:100%;height:100vh;overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 48%,rgba(115,95,240,.11),transparent 24%),
+    linear-gradient(180deg,#110052 0%,#08002d 58%,#02000d 100%);
+}
+.axis{
+  position:absolute;top:-10vh;left:50%;width:1px;height:66vh;
+  background:linear-gradient(180deg,transparent 0%,rgba(255,255,255,.10) 8%,rgba(255,255,255,.42) 45%,rgba(255,255,255,.88) 75%,rgba(255,255,255,.52) 100%);
+  filter:drop-shadow(0 0 6px rgba(255,255,255,.48));
+  opacity:0;animation:axisAppear 4s ease forwards .2s,axisBreath 8s ease-in-out infinite 4.5s;
+}
+.title{
+  position:absolute;top:38vh;left:50%;transform:translateX(-50%);
+  font-size:clamp(34px,4vw,62px);font-weight:400;letter-spacing:.16em;white-space:nowrap;
+  opacity:0;text-shadow:0 0 6px rgba(255,255,255,.18),0 0 14px rgba(255,255,255,.12);
+  animation:titleAppear 4.2s ease forwards 2.2s;
+}
+.prism{
+  position:absolute;top:52vh;left:50%;width:0;height:0;transform:translateX(-50%);
+  border-left:22px solid transparent;border-right:22px solid transparent;border-bottom:42px solid rgba(255,255,255,.17);
+  filter:drop-shadow(0 0 9px rgba(255,255,255,.34));
+  opacity:0;animation:fadeIn 3.2s ease forwards 1.5s,prismBreath 8s ease-in-out infinite 5s;
+}
+.rainbow{
+  position:absolute;top:calc(52vh + 24px);left:50%;width:154px;height:190px;
+  transform:translateX(-50%);opacity:0;animation:fadeIn 4s ease forwards 2.4s;
+}
+.ray{
+  position:absolute;top:0;left:50%;width:.65px;height:155px;transform-origin:top center;
+  background:currentColor;border-radius:999px;opacity:.42;
+  box-shadow:0 0 2px currentColor,0 0 5px currentColor;
+  animation:rayShade 8s ease-in-out infinite;
+}
+.ray:nth-child(1){color:#bd3333;transform:translateX(-50%) rotate(16deg)}
+.ray:nth-child(2){color:#c77723;transform:translateX(-50%) rotate(10.5deg)}
+.ray:nth-child(3){color:#c9bd45;transform:translateX(-50%) rotate(5.2deg)}
+.ray:nth-child(4){color:#3fbd62;transform:translateX(-50%) rotate(0deg)}
+.ray:nth-child(5){color:#31b7c8;transform:translateX(-50%) rotate(-5.2deg)}
+.ray:nth-child(6){color:#496ec8;transform:translateX(-50%) rotate(-10.5deg)}
+.ray:nth-child(7){color:#8050c8;transform:translateX(-50%) rotate(-16deg)}
+
+.enter,.master-entry{
+  position:absolute;left:50%;transform:translateX(-50%);
+  font-family:"Yu Gothic","Hiragino Sans",sans-serif;
+  font-size:11px;letter-spacing:.24em;opacity:0;
+}
+.enter{bottom:15.5vh;animation:fadeIn 3s ease forwards 5.8s}
+.master-entry{
+  bottom:9.8vh;color:rgba(244,241,255,.55);
+  background:transparent;border:0;cursor:pointer;
+  animation:fadeIn 3s ease forwards 6.4s;
+}
+
+/* PUBLIC */
+.main{background:#faf8f2;color:#1f1c24}
+.intro{
+  min-height:100vh;padding:18vh 7vw 12vh;background:#02000d;color:#f4f1ff;
+}
+.inner{max-width:1080px;margin:0 auto}
+.text{max-width:760px;margin:0 auto}
+.kicker{
+  font-family:"Yu Gothic","Hiragino Sans",sans-serif;
+  font-size:12px;letter-spacing:.24em;color:rgba(244,241,255,.56);margin-bottom:38px;
+}
+h2{
+  font-size:clamp(28px,4vw,52px);font-weight:400;letter-spacing:.08em;line-height:1.45;margin-bottom:34px;
+}
+.intro p{font-size:clamp(15px,1.45vw,18px);color:rgba(244,241,255,.82);margin-bottom:1.4em}
+.content{padding:12vh 7vw 16vh}
+.section-title{font-size:clamp(26px,3vw,42px);font-weight:400;letter-spacing:.08em;margin-bottom:18px}
+.section-sub{font-family:"Times New Roman",serif;color:#8b8492;letter-spacing:.12em;margin-bottom:26px;font-size:13px}
+.lead{max-width:860px;font-size:17px;color:#3d3942;margin-bottom:70px}
+.wide{
+  max-width:900px;margin:0 auto 96px;padding:54px 0;
+  border-top:1px solid rgba(30,25,40,.18);border-bottom:1px solid rgba(30,25,40,.18);
+}
+.wide h3{font-size:26px;font-weight:400;letter-spacing:.08em;margin-bottom:10px}
+.aphorism{font-size:13px;color:#8a828f;font-family:"Yu Gothic","Hiragino Sans",sans-serif;margin-bottom:18px}
+.wide p{color:#403b45;margin-bottom:1.2em}
+.master-open{
+  margin-top:18px;padding:12px 24px;border:1px solid rgba(30,25,40,.24);
+  background:transparent;color:#1f1c24;letter-spacing:.16em;cursor:pointer;
+}
+
+/* PASSWORD */
+.lock{
+  display:none;position:fixed;inset:0;z-index:99;
+  background:rgba(2,0,13,.92);backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;padding:24px;
+}
+.lock-box{
+  width:min(440px,100%);border:1px solid rgba(244,241,255,.2);
+  padding:42px 34px;text-align:center;background:rgba(255,255,255,.04);
+}
+.lock-box h3{font-size:24px;font-weight:400;letter-spacing:.12em;margin-bottom:12px}
+.lock-box p{font-size:14px;color:rgba(244,241,255,.65);margin-bottom:24px}
+.lock-box input{
+  width:100%;padding:14px;background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.22);color:white;text-align:center;
+  letter-spacing:.18em;margin-bottom:18px;
+}
+.lock-box button{
+  padding:12px 24px;border:1px solid rgba(255,255,255,.24);
+  background:transparent;color:white;letter-spacing:.16em;cursor:pointer;
+}
+.error{color:#ffb6b6;font-size:13px;margin-top:16px;min-height:20px}
+
+/* MASTER */
+.master{
+  display:none;background:#050018;color:#f4f1ff;min-height:100vh;padding:10vh 5vw 14vh;
+}
+.master.active{display:block}
+.master-head{max-width:1180px;margin:0 auto 48px}
+.master-head h2{margin-bottom:12px}
+.master-head p{color:rgba(244,241,255,.72);max-width:820px}
+
+.console{
+  max-width:1220px;margin:0 auto;
+  display:grid;grid-template-columns:280px 1fr 390px;gap:34px;align-items:center;
+}
+.layer-menu,.detail-panel{
+  border:1px solid rgba(244,241,255,.16);padding:28px;background:rgba(255,255,255,.035);
+}
+.layer-menu h3,.detail-panel h3{font-weight:400;letter-spacing:.1em;margin-bottom:18px}
+.layer-menu button{
+  display:block;width:100%;text-align:left;margin-bottom:10px;
+  padding:12px 14px;background:transparent;color:rgba(244,241,255,.75);
+  border:1px solid rgba(244,241,255,.12);cursor:pointer;
+}
+.layer-menu button:hover{color:white;border-color:rgba(244,241,255,.35)}
+.layer-group-title{
+  margin-top:28px!important;
+  color:rgba(244,241,255,.55);
+}
+
+/* HUMAN MODEL v0.2 */
+.body-model{
+  position:relative;
+  height:740px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.field{
+  position:absolute;
+  width:390px;
+  height:700px;
+  border-radius:50%;
+  border:1px solid rgba(244,241,255,.08);
+  box-shadow:0 0 80px rgba(130,110,255,.08) inset;
+}
+
+.gravity-line{
+  position:absolute;
+  top:16px;
+  bottom:60px;
+  width:1px;
+  background:linear-gradient(180deg,transparent,rgba(255,255,255,.35),transparent);
+  opacity:.45;
+}
+
+.ground{
+  position:absolute;
+  bottom:82px;
+  width:370px;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.30),transparent);
+}
+
+.earth-star{
+  position:absolute;
+  bottom:28px;
+  left:50%;
+  transform:translateX(-50%);
+  color:#9b6bff;
+  width:20px;
+  height:20px;
+  z-index:8;
+}
+
+.human-shape{
+  position:relative;
+  width:270px;
+  height:620px;
+}
+
+.head{
+  position:absolute;
+  top:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:84px;
+  height:84px;
+  border-radius:50%;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 0 22px rgba(255,255,255,.04);
+}
+
+.neck{
+  position:absolute;
+  top:76px;
+  left:50%;
+  transform:translateX(-50%);
+  width:34px;
+  height:44px;
+  border-radius:18px;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.12);
+}
+
+.shoulders{
+  position:absolute;
+  top:108px;
+  left:50%;
+  transform:translateX(-50%);
+  width:220px;
+  height:78px;
+  border-radius:100px 100px 42px 42px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.10);
+}
+
+.torso{
+  position:absolute;
+  top:130px;
+  left:50%;
+  transform:translateX(-50%);
+  width:138px;
+  height:306px;
+  border-radius:68px 68px 48px 48px;
+  background:radial-gradient(ellipse at center,rgba(255,255,255,.12),rgba(255,255,255,.035));
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 0 48px rgba(120,100,255,.10);
+}
+
+.arm{
+  position:absolute;
+  top:158px;
+  width:28px;
+  height:270px;
+  border-radius:30px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.09);
+}
+
+.left-arm{left:32px;transform:rotate(7deg)}
+.right-arm{right:32px;transform:rotate(-7deg)}
+
+.leg{
+  position:absolute;
+  top:410px;
+  width:36px;
+  height:190px;
+  border-radius:30px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.09);
+}
+
+.left-leg{left:100px}
+.right-leg{right:100px}
+
+.chakra{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.5);
+  background:currentColor;
+  box-shadow:0 0 16px currentColor;
+  cursor:pointer;
+  z-index:12;
+}
+
+.chakra.active{
+  width:30px;
+  height:30px;
+  box-shadow:0 0 30px currentColor;
+}
+
+.c7{top:-16px;color:#b48cff}
+.c6{top:38px;color:#5f7dff}
+.c5{top:128px;color:#31b7c8}
+.c4{top:222px;color:#3fbd62}
+.c3{top:315px;color:#c9bd45}
+.c2{top:415px;color:#c77723}
+.c1{top:518px;color:#bd3333}
+
+/* optional layers */
+.skeleton-layer,
+.portal-layer,
+.flow-layer{
+  display:none;
+}
+
+.body-model.show-skeleton .skeleton-layer,
+.body-model.show-portal .portal-layer,
+.body-model.show-flow .flow-layer{
+  display:block;
+}
+
+.spine{
+  position:absolute;
+  top:92px;
+  left:50%;
+  transform:translateX(-50%);
+  width:2px;
+  height:368px;
+  background:rgba(255,255,255,.24);
+  box-shadow:0 0 8px rgba(255,255,255,.22);
+  z-index:6;
+}
+
+.rib{
+  position:absolute;
+  top:166px;
+  left:50%;
+  transform:translateX(-50%);
+  width:96px;
+  height:92px;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:50%;
+  z-index:6;
+}
+
+.pelvis{
+  position:absolute;
+  top:405px;
+  left:50%;
+  transform:translateX(-50%);
+  width:96px;
+  height:54px;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:50%;
+  z-index:6;
+}
+
+.portal{
+  position:absolute;
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.45);
+  box-shadow:0 0 16px rgba(255,255,255,.28);
+  z-index:9;
+}
+
+.left-hand{top:405px;left:30px}
+.right-hand{top:405px;right:30px}
+.left-foot{top:590px;left:100px}
+.right-foot{top:590px;right:100px}
+
+.flow-line{
+  position:absolute;
+  top:102px;
+  height:430px;
+  width:1px;
+  background:linear-gradient(180deg,transparent,rgba(255,255,255,.22),transparent);
+  z-index:5;
+}
+
+.flow-line.center{left:50%}
+.flow-line.left{left:43%;transform:rotate(5deg)}
+.flow-line.right{right:43%;transform:rotate(-5deg)}
+
+.detail-panel h4{font-size:24px;font-weight:400;letter-spacing:.08em;margin-bottom:6px}
+.detail-panel .sub{font-size:13px;color:rgba(244,241,255,.48);margin-bottom:22px}
+.detail-section{margin-bottom:22px}
+.detail-section h5{
+  font-size:13px;font-family:"Yu Gothic","Hiragino Sans",sans-serif;
+  letter-spacing:.14em;color:rgba(244,241,255,.48);margin-bottom:8px;
+}
+.detail-section ul{padding-left:1.1em;color:rgba(244,241,255,.78);font-size:14px}
+.note{
+  margin-top:24px;padding-top:18px;border-top:1px solid rgba(244,241,255,.14);
+  color:rgba(244,241,255,.55);font-size:13px;
+}
+
+.footer{
+  padding:12vh 7vw;background:#050018;color:rgba(244,241,255,.68);
+  text-align:center;font-size:13px;letter-spacing:.12em;
+}
+
+/* ANIMATION */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes axisAppear{from{opacity:0;transform:translateY(-22px)}to{opacity:.66;transform:translateY(0)}}
+@keyframes axisBreath{0%,100%{opacity:.56}50%{opacity:.78}}
+@keyframes titleAppear{from{opacity:0;letter-spacing:.22em;filter:blur(3px)}to{opacity:1;letter-spacing:.16em;filter:blur(0)}}
+@keyframes prismBreath{0%,100%{opacity:.48;filter:drop-shadow(0 0 7px rgba(255,255,255,.26))}50%{opacity:.64;filter:drop-shadow(0 0 11px rgba(255,255,255,.38))}}
+@keyframes rayShade{0%,100%{opacity:.24;box-shadow:0 0 1px currentColor,0 0 3px currentColor}50%{opacity:.50;box-shadow:0 0 2px currentColor,0 0 6px currentColor}}
+
+/* MOBILE */
+@media(max-width:980px){
+  .console{grid-template-columns:1fr}
+  .layer-menu{order:1}
+  .body-model{order:2;height:700px}
+  .detail-panel{order:3}
+}
+
+@media(max-width:600px){
+  .title{top:36vh;font-size:32px;letter-spacing:.13em}
+  .prism{top:51.5vh}
+  .rainbow{top:calc(51.5vh + 24px);width:124px;transform:translateX(-50%) scale(.88)}
+  .enter{bottom:14vh}
+  .master-entry{bottom:8.5vh}
+  .intro{padding:14vh 7vw 10vh}
+  .content{padding:10vh 7vw 12vh}
+  .body-model{height:610px;transform:scale(.84)}
+  .lock-box{padding:34px 24px}
+}
+</style>
+</head>
+
+<body>
+
+<section class="cover" id="top">
+  <div class="axis"></div>
+  <h1 class="title">HUMAN OS</h1>
+  <div class="prism"></div>
+  <div class="rainbow">
+    <div class="ray"></div><div class="ray"></div><div class="ray"></div>
+    <div class="ray"></div><div class="ray"></div><div class="ray"></div><div class="ray"></div>
+  </div>
+  <a class="enter" href="#main">ENTER</a>
+  <button class="master-entry" onclick="openLock()">MASTER</button>
+</section>
+
+<main class="main" id="main">
+  <section class="intro">
+    <div class="inner">
+      <div class="text">
+        <div class="kicker">OBSERVATION / HUMAN / WORLD</div>
+        <h2>自分を知り、<br>世界を知る。</h2>
+        <p>Know yourself, know the world.</p>
+        <p>Human OS は、人間を一つの理論で説明するための場所ではありません。</p>
+        <p>身体、感情、思考、意識、関係性、そして生命の働きを、多様な視点から観察するための共通基盤です。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="inner">
+      <h2 class="section-title">知の地図</h2>
+      <div class="section-sub">A map of human understanding</div>
+      <p class="lead">
+        Human OS は、人間について語られてきた多様な知を、寄せ集めるための場所ではありません。
+        抽象度をそろえ、観察の視点として並べ、その対応関係を探究するための開かれた学びの場です。
+      </p>
+
+      <div class="wide">
+        <h3>チクラカムワザ</h3>
+        <div class="aphorism">皆で丸く座り、共に観る。</div>
+        <p>
+          チクラカムワザ（千座神和座）は、Human OS を体験的に理解するための実践です。
+          共に座り、共に観察し、体験を深めていく学びの場です。
+        </p>
+      </div>
+
+      <div class="wide">
+        <h3>Master Observatory</h3>
+        <div class="aphorism">身体を入口に、知の対応関係を観る。</div>
+        <p>
+          マスター専用ページでは、各チャクラと身体機能、神経系、内分泌、内臓、感情、象徴体系、共同観察をリンクさせる実験を行います。
+        </p>
+        <button class="master-open" onclick="openLock()">MASTER PAGE</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<section class="master" id="master">
+  <div class="master-head">
+    <div class="kicker">HUMAN OS INSTITUTE / MASTER OBSERVATORY</div>
+    <h2>人体を観察点とする。</h2>
+    <p>
+      これは実験用の学習補助ページです。各チャクラを入口に、身体機能・神経系・内分泌・内臓・感情・象徴体系・未解決の問いをリンクします。
+    </p>
+  </div>
+
+  <div class="console">
+    <div class="layer-menu">
+      <h3>Chakra</h3>
+      <button onclick="selectChakra('earth')">アーススターチャクラ</button>
+      <button onclick="selectChakra('c1')">第一チャクラ</button>
+      <button onclick="selectChakra('c2')">第二チャクラ</button>
+      <button onclick="selectChakra('c3')">第三チャクラ</button>
+      <button onclick="selectChakra('c4')">第四チャクラ</button>
+      <button onclick="selectChakra('c5')">第五チャクラ</button>
+      <button onclick="selectChakra('c6')">第六チャクラ</button>
+      <button onclick="selectChakra('c7')">第七チャクラ</button>
+
+      <h3 class="layer-group-title">Body Layers</h3>
+      <button onclick="toggleLayer('skeleton')">Skeleton / 筋骨格</button>
+      <button onclick="toggleLayer('portal')">Portal / 手足</button>
+      <button onclick="toggleLayer('flow')">Flow / 経絡・循環</button>
+    </div>
+
+    <div class="body-model">
+      <div class="gravity-line"></div>
+      <div class="field"></div>
+      <div class="ground"></div>
+
+      <button class="earth-star chakra earth" onclick="selectChakra('earth')"></button>
+
+      <div class="human-shape">
+        <div class="head"></div>
+        <div class="neck"></div>
+        <div class="shoulders"></div>
+        <div class="torso"></div>
+        <div class="left-arm arm"></div>
+        <div class="right-arm arm"></div>
+        <div class="left-leg leg"></div>
+        <div class="right-leg leg"></div>
+
+        <div class="skeleton-layer">
+          <div class="spine"></div>
+          <div class="rib"></div>
+          <div class="pelvis"></div>
+        </div>
+
+        <div class="flow-layer">
+          <div class="flow-line center"></div>
+          <div class="flow-line left"></div>
+          <div class="flow-line right"></div>
+        </div>
+
+        <div class="portal-layer">
+          <div class="portal left-hand"></div>
+          <div class="portal right-hand"></div>
+          <div class="portal left-foot"></div>
+          <div class="portal right-foot"></div>
+        </div>
+
+        <button class="chakra c7" onclick="selectChakra('c7')"></button>
+        <button class="chakra c6" onclick="selectChakra('c6')"></button>
+        <button class="chakra c5" onclick="selectChakra('c5')"></button>
+        <button class="chakra c4" onclick="selectChakra('c4')"></button>
+        <button class="chakra c3 active" onclick="selectChakra('c3')"></button>
+        <button class="chakra c2" onclick="selectChakra('c2')"></button>
+        <button class="chakra c1" onclick="selectChakra('c1')"></button>
+      </div>
+    </div>
+
+    <div class="detail-panel" id="detail"></div>
+  </div>
+</section>
+
+<div class="lock" id="lock">
+  <div class="lock-box">
+    <h3>MASTER</h3>
+    <p>チクラカムワザ受講者用の実験ページです。</p>
+    <input id="password" type="password" placeholder="PASSWORD" />
+    <button onclick="checkPassword()">ENTER</button>
+    <div class="error" id="error"></div>
+  </div>
+</div>
+
+<footer class="footer">
+  HUMAN OS / KNOW YOURSELF, KNOW THE WORLD
+</footer>
+
+<script>
+const MASTER_KEY = "chikura";
+
+const chakraData = {
+  earth: {
+    title: "アーススターチャクラ",
+    sub: "Earth Star / 地球・重力・接地",
+    body: ["足裏", "接地感", "重力線", "身体軸", "立つという感覚"],
+    nerve: ["足底感覚", "前庭感覚", "固有受容感覚"],
+    organ: ["下肢", "足裏", "骨格支持", "体重支持"],
+    emotion: ["接地", "安心", "地球とのつながり", "現実感", "帰属感"],
+    question: ["人はどのように地球とつながって立っているのか。", "重力感覚は自己感覚にどう関わるのか。"]
+  },
+  c1: {
+    title: "第一チャクラ",
+    sub: "Root / 骨盤底・生存・安心",
+    body: ["骨盤底筋群", "肛門周辺", "筋骨格系", "姿勢・重力感覚", "体温・基礎代謝"],
+    nerve: ["仙骨神経叢", "自律神経の基礎反応", "前庭感覚・平衡感覚"],
+    organ: ["直腸・排泄", "骨・関節", "下肢", "副腎との関連を検討"],
+    emotion: ["安心安全", "恐怖反応", "居場所", "生存感覚", "愛着形成の基盤"],
+    question: ["安心は身体のどこに記録されるのか。", "重力感覚と自己安定感はどう関係するか。"]
+  },
+  c2: {
+    title: "第二チャクラ",
+    sub: "Sacral / 腸・子宮・親密性・流動",
+    body: ["下腹部", "骨盤内臓", "腸", "生殖器", "体液・水分代謝"],
+    nerve: ["骨盤神経叢", "腸管神経系", "迷走神経との関連"],
+    organ: ["小腸・大腸", "子宮・卵巣・精巣", "膀胱", "腸内フローラ"],
+    emotion: ["親密性", "身体接触", "境界感覚", "喜び", "羞恥", "流動性"],
+    question: ["抱擁や近接感はどの層に記録されるのか。", "腸内環境と感情の揺れはどう対応するか。"]
+  },
+  c3: {
+    title: "第三チャクラ",
+    sub: "Solar Plexus / 太陽神経叢・消化・意志",
+    body: ["みぞおち", "丹田との関係", "腹圧", "消化・代謝", "体幹"],
+    nerve: ["太陽神経叢", "腹腔神経叢", "交感神経", "自律神経"],
+    organ: ["胃", "膵臓", "肝臓", "胆嚢", "脾臓", "小腸上部"],
+    emotion: ["意志", "自己効力感", "怒り", "行動力", "責任", "緊張"],
+    question: ["意志は腹に宿るのか。", "消化機能と自己決定感はどう関係するか。"]
+  },
+  c4: {
+    title: "第四チャクラ",
+    sub: "Heart / 心臓・呼吸・関係性",
+    body: ["胸郭", "心臓", "肺", "横隔膜", "腕・手"],
+    nerve: ["迷走神経", "心臓神経叢", "呼吸と自律神経"],
+    organ: ["心臓", "肺", "胸腺", "循環器", "免疫との関連"],
+    emotion: ["愛", "共感", "悲しみ", "信頼", "祈り", "関係性"],
+    question: ["愛は感情か、関係性か、生体現象か。", "呼吸は他者との距離感をどう変えるか。"]
+  },
+  c5: {
+    title: "第五チャクラ",
+    sub: "Throat / 喉・表現・言語",
+    body: ["喉", "声帯", "顎", "首", "肩"],
+    nerve: ["頸神経叢", "迷走神経の枝", "発声に関わる神経"],
+    organ: ["甲状腺", "副甲状腺", "咽頭・喉頭", "気管"],
+    emotion: ["自己表現", "沈黙", "言葉", "伝達", "聴く力"],
+    question: ["言えなかった言葉は身体のどこに残るのか。", "声は自己像をどう変えるか。"]
+  },
+  c6: {
+    title: "第六チャクラ",
+    sub: "Brow / 視覚・認識・内的イメージ",
+    body: ["頭部中心", "眉間", "眼", "脳", "視覚系"],
+    nerve: ["視神経", "三叉神経", "中枢神経系"],
+    organ: ["松果体との象徴的関連", "脳下垂体との関連を検討", "眼・視覚器"],
+    emotion: ["洞察", "直感", "夢", "内的映像", "認識", "迷い"],
+    question: ["夢は脳現象か、象徴経験か。", "内的イメージは自己形成にどう関わるか。"]
+  },
+  c7: {
+    title: "第七チャクラ",
+    sub: "Crown / 統合・意識・超越",
+    body: ["頭頂上部", "脳全体", "神経系の統合"],
+    nerve: ["中枢神経系", "脳波", "意識状態との関連"],
+    organ: ["脳", "内分泌系全体との統合的観察"],
+    emotion: ["統合", "祈り", "意味", "超越", "一体感"],
+    question: ["意識とは何か。", "統合された自己像はどのように形成されるか。"]
+  }
+};
+
+function openLock(){
+  document.getElementById("lock").style.display = "flex";
+  setTimeout(()=>document.getElementById("password").focus(),100);
+}
+
+function checkPassword(){
+  const value = document.getElementById("password").value;
+  if(value === MASTER_KEY){
+    document.getElementById("lock").style.display = "none";
+    document.getElementById("master").classList.add("active");
+    location.hash = "master";
+    selectChakra("c3");
+  }else{
+    document.getElementById("error").textContent = "パスワードが違います。";
+  }
+}
+
+function toggleLayer(layer){
+  const model = document.querySelector(".body-model");
+  model.classList.toggle("show-" + layer);
+}
+
+function selectChakra(id){
+  document.querySelectorAll(".chakra").forEach(el=>el.classList.remove("active"));
+  const marker = document.querySelector("." + id);
+  if(marker) marker.classList.add("active");
+
+  const d = chakraData[id];
+  document.getElementById("detail").innerHTML = `
+    <h4>${d.title}</h4>
+    <div class="sub">${d.sub}</div>
+
+    ${section("身体 / Body", d.body)}
+    ${section("神経系 / Nervous System", d.nerve)}
+    ${section("内臓・内分泌 / Organs", d.organ)}
+    ${section("感情・記憶 / Emotion", d.emotion)}
+    ${section("問い / Questions", d.question)}
+
+    <div class="note">
+      ※これは学習補助用の対応表です。医学的診断ではなく、科学的知見・象徴体系・実践者の観察を区別しながら整理するための実験表示です。
+    </div>
+  `;
+}
+
+function section(title, items){
+  return `
+    <div class="detail-section">
+      <h5>${title}</h5>
+      <ul>${items.map(i=>`<li>${i}</li>`).join("")}</ul>
+    </div>
+  `;
+}
+
+document.addEventListener("keydown", e=>{
+  if(e.key === "Enter" && document.getElementById("lock").style.display === "flex"){
+    checkPassword();
+  }
+  if(e.key === "Escape"){
+    document.getElementById("lock").style.display = "none";
+  }
+});
+
+selectChakra("c3");
+</script>
+
+</body>
+</html>
