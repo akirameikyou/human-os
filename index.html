@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Human OS</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #07152d 0%, #020612 55%, #000 100%);
+      font-family: "Times New Roman", "Yu Mincho", "Hiragino Mincho ProN", serif;
+      color: white;
+    }
+
+    .stage {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .title {
+      position: absolute;
+      top: 9vh;
+      width: 100%;
+      text-align: center;
+      letter-spacing: 0.16em;
+      font-size: clamp(28px, 5vw, 68px);
+      font-weight: 400;
+      opacity: 0;
+      animation: fadeIn 3s ease forwards 1.2s;
+    }
+
+    .subtitle {
+      position: absolute;
+      top: calc(9vh + 86px);
+      width: 100%;
+      text-align: center;
+      font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
+      font-size: clamp(12px, 1.5vw, 18px);
+      letter-spacing: 0.22em;
+      opacity: 0;
+      animation: fadeIn 3s ease forwards 2.4s;
+    }
+
+    .light-line {
+      position: absolute;
+      width: 44vw;
+      max-width: 520px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, white, transparent);
+      filter: drop-shadow(0 0 12px rgba(255,255,255,0.9));
+      animation: breathe 5s ease-in-out infinite;
+    }
+
+    .prism {
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-left: 42px solid transparent;
+      border-right: 42px solid transparent;
+      border-bottom: 72px solid rgba(255,255,255,0.12);
+      transform: translateY(64px);
+      filter: drop-shadow(0 0 18px rgba(255,255,255,0.35));
+      opacity: 0;
+      animation: fadeIn 3s ease forwards 3.2s;
+    }
+
+    .rainbow {
+      position: absolute;
+      width: min(70vw, 760px);
+      height: 260px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      transform: translateY(170px);
+      opacity: 0;
+      animation: fadeIn 4s ease forwards 4.2s;
+    }
+
+    .ray {
+      width: 2px;
+      height: 220px;
+      border-radius: 999px;
+      transform-origin: top center;
+      filter: blur(0.3px) drop-shadow(0 0 10px currentColor);
+      animation: rayPulse 6s ease-in-out infinite;
+    }
+
+    .ray:nth-child(1) { color: #ff2b2b; background: currentColor; transform: rotate(28deg); }
+    .ray:nth-child(2) { color: #ff8a00; background: currentColor; transform: rotate(18deg); }
+    .ray:nth-child(3) { color: #ffe600; background: currentColor; transform: rotate(8deg); }
+    .ray:nth-child(4) { color: #4dff4d; background: currentColor; transform: rotate(0deg); }
+    .ray:nth-child(5) { color: #00d5ff; background: currentColor; transform: rotate(-8deg); }
+    .ray:nth-child(6) { color: #3478ff; background: currentColor; transform: rotate(-18deg); }
+    .ray:nth-child(7) { color: #b94dff; background: currentColor; transform: rotate(-28deg); }
+
+    .enter {
+      position: absolute;
+      bottom: 9vh;
+      font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.28em;
+      opacity: 0;
+      animation: fadeIn 3s ease forwards 7s;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes breathe {
+      0%, 100% {
+        opacity: 0.55;
+        transform: scaleX(0.96);
+      }
+      50% {
+        opacity: 1;
+        transform: scaleX(1.04);
+      }
+    }
+
+    @keyframes rayPulse {
+      0%, 100% {
+        opacity: 0.45;
+        height: 180px;
+      }
+      50% {
+        opacity: 0.95;
+        height: 240px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="stage">
+    <h1 class="title">HUMAN OS</h1>
+    <div class="subtitle">観察から、すべては始まる</div>
+
+    <div class="light-line"></div>
+    <div class="prism"></div>
+
+    <div class="rainbow">
+      <div class="ray"></div>
+      <div class="ray"></div>
+      <div class="ray"></div>
+      <div class="ray"></div>
+      <div class="ray"></div>
+      <div class="ray"></div>
+      <div class="ray"></div>
+    </div>
+
+    <div class="enter">ENTER</div>
+  </main>
+</body>
+</html>
