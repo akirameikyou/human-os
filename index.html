@@ -12,7 +12,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #090032;
+      background: #070024;
       color: #fff;
       font-family: "Times New Roman", "Yu Mincho", "Hiragino Mincho ProN", serif;
     }
@@ -22,9 +22,9 @@
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(circle at 50% 48%, rgba(130,110,255,0.18), transparent 22%),
-        radial-gradient(circle at 50% 68%, rgba(90,60,210,0.13), transparent 30%),
-        linear-gradient(180deg, #12005c 0%, #0a0139 58%, #030013 100%);
+        radial-gradient(circle at 50% 47%, rgba(150,125,255,0.16), transparent 23%),
+        radial-gradient(circle at 50% 66%, rgba(80,50,190,0.11), transparent 31%),
+        linear-gradient(180deg, #12005c 0%, #090036 60%, #020010 100%);
       pointer-events: none;
     }
 
@@ -39,20 +39,21 @@
 
     .axis {
       position: absolute;
-      top: 0;
+      top: -8vh;
       left: 50%;
       width: 1px;
-      height: 58vh;
+      height: 64vh;
       background: linear-gradient(
         180deg,
         transparent 0%,
-        rgba(255,255,255,0.12) 14%,
-        rgba(255,255,255,0.9) 58%,
-        rgba(255,255,255,0.58) 100%
+        rgba(255,255,255,0.10) 8%,
+        rgba(255,255,255,0.55) 46%,
+        rgba(255,255,255,0.92) 76%,
+        rgba(255,255,255,0.48) 100%
       );
-      filter: drop-shadow(0 0 8px rgba(255,255,255,0.65));
+      filter: drop-shadow(0 0 7px rgba(255,255,255,0.55));
       opacity: 0;
-      animation: fadeIn 3s ease forwards 0.4s, axisBreathe 7s ease-in-out infinite 3s;
+      animation: axisAppear 4.2s ease forwards 0.2s, axisBreath 8s ease-in-out infinite 4.5s;
     }
 
     .title {
@@ -64,9 +65,21 @@
       font-weight: 400;
       letter-spacing: 0.16em;
       white-space: nowrap;
-      text-shadow: 0 0 18px rgba(255,255,255,0.25);
       opacity: 0;
-      animation: fadeIn 3.8s ease forwards 2.8s;
+      text-shadow:
+        0 0 10px rgba(255,255,255,0.18),
+        0 0 34px rgba(180,160,255,0.22);
+      animation: titleAppear 4.4s ease forwards 2.3s;
+    }
+
+    .title::before {
+      content: "";
+      position: absolute;
+      inset: -28px -80px;
+      background: radial-gradient(circle, rgba(180,160,255,0.16), transparent 62%);
+      z-index: -1;
+      opacity: 0;
+      animation: titleHalo 5.2s ease forwards 2.8s;
     }
 
     .prism {
@@ -78,62 +91,51 @@
       transform: translateX(-50%);
       border-left: 22px solid transparent;
       border-right: 22px solid transparent;
-      border-bottom: 42px solid rgba(255,255,255,0.30);
-      filter: drop-shadow(0 0 12px rgba(255,255,255,0.50));
+      border-bottom: 42px solid rgba(255,255,255,0.18);
+      filter: drop-shadow(0 0 10px rgba(255,255,255,0.38));
       opacity: 0;
-      animation: fadeIn 3s ease forwards 1.7s;
-    }
-
-    .prism::after {
-      content: "";
-      position: absolute;
-      left: -16px;
-      top: 28px;
-      width: 32px;
-      height: 1px;
-      background: rgba(255,255,255,0.75);
-      box-shadow: 0 0 12px rgba(255,255,255,0.8);
+      animation: fadeIn 3.4s ease forwards 1.6s, prismBreath 8s ease-in-out infinite 5s;
     }
 
     .rainbow {
       position: absolute;
       top: calc(52vh + 42px);
       left: 50%;
-      width: 145px;
+      width: 150px;
       height: 170px;
       transform: translateX(-50%);
       opacity: 0;
-      animation: fadeIn 4s ease forwards 2.2s;
+      animation: fadeIn 4s ease forwards 2.4s;
     }
 
     .ray {
       position: absolute;
       top: 0;
       left: 50%;
-      width: 1px;
-      height: 145px;
+      width: 0.7px;
+      height: 146px;
       transform-origin: top center;
       background: currentColor;
       border-radius: 999px;
-      opacity: 0.78;
+      opacity: 0.46;
       box-shadow:
-        0 0 4px currentColor,
-        0 0 11px currentColor,
-        0 0 20px rgba(255,255,255,0.10);
-      animation: rayBreathe 7s ease-in-out infinite;
+        0 0 2px currentColor,
+        0 0 5px currentColor,
+        0 0 10px rgba(255,255,255,0.03);
+      animation: rayShade 8s ease-in-out infinite;
     }
 
-    .ray:nth-child(1) { color: #ff3030; transform: translateX(-50%) rotate(16deg); }
-    .ray:nth-child(2) { color: #ff9a18; transform: translateX(-50%) rotate(10.5deg); }
-    .ray:nth-child(3) { color: #ffe84a; transform: translateX(-50%) rotate(5.2deg); }
-    .ray:nth-child(4) { color: #44ff73; transform: translateX(-50%) rotate(0deg); }
-    .ray:nth-child(5) { color: #20e9ff; transform: translateX(-50%) rotate(-5.2deg); }
-    .ray:nth-child(6) { color: #4b7cff; transform: translateX(-50%) rotate(-10.5deg); }
-    .ray:nth-child(7) { color: #b45cff; transform: translateX(-50%) rotate(-16deg); }
+    .ray:nth-child(1) { color: #cc3030; transform: translateX(-50%) rotate(16deg); }
+    .ray:nth-child(2) { color: #d98222; transform: translateX(-50%) rotate(10.5deg); }
+    .ray:nth-child(3) { color: #d6c94a; transform: translateX(-50%) rotate(5.2deg); }
+    .ray:nth-child(4) { color: #43cf64; transform: translateX(-50%) rotate(0deg); }
+    .ray:nth-child(5) { color: #2fc4d6; transform: translateX(-50%) rotate(-5.2deg); }
+    .ray:nth-child(6) { color: #4a72d6; transform: translateX(-50%) rotate(-10.5deg); }
+    .ray:nth-child(7) { color: #8a52d6; transform: translateX(-50%) rotate(-16deg); }
 
     .enter {
       position: absolute;
-      bottom: 17vh;
+      bottom: 15.5vh;
       left: 50%;
       transform: translateX(-50%);
       font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
@@ -148,19 +150,63 @@
       to { opacity: 1; }
     }
 
-    @keyframes axisBreathe {
-      0%, 100% { opacity: 0.64; }
-      50% { opacity: 1; }
+    @keyframes axisAppear {
+      from {
+        opacity: 0;
+        transform: translateY(-18px);
+      }
+      to {
+        opacity: 0.72;
+        transform: translateY(0);
+      }
     }
 
-    @keyframes rayBreathe {
+    @keyframes axisBreath {
+      0%, 100% { opacity: 0.58; }
+      50% { opacity: 0.82; }
+    }
+
+    @keyframes titleAppear {
+      from {
+        opacity: 0;
+        letter-spacing: 0.22em;
+        filter: blur(3px);
+      }
+      to {
+        opacity: 1;
+        letter-spacing: 0.16em;
+        filter: blur(0);
+      }
+    }
+
+    @keyframes titleHalo {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes prismBreath {
       0%, 100% {
-        opacity: 0.45;
-        height: 120px;
+        opacity: 0.48;
+        filter: drop-shadow(0 0 8px rgba(255,255,255,0.28));
       }
       50% {
-        opacity: 0.92;
-        height: 160px;
+        opacity: 0.68;
+        filter: drop-shadow(0 0 13px rgba(255,255,255,0.42));
+      }
+    }
+
+    @keyframes rayShade {
+      0%, 100% {
+        opacity: 0.28;
+        box-shadow:
+          0 0 1px currentColor,
+          0 0 4px currentColor;
+      }
+      50% {
+        opacity: 0.58;
+        box-shadow:
+          0 0 2px currentColor,
+          0 0 7px currentColor;
       }
     }
 
@@ -176,11 +222,11 @@
 
       .rainbow {
         top: calc(51vh + 42px);
-        width: 120px;
+        width: 125px;
       }
 
       .enter {
-        bottom: 18vh;
+        bottom: 17vh;
       }
     }
   </style>
