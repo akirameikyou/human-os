@@ -8,32 +8,30 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html, body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #070022;
-      color: #fff;
-      font-family: "Times New Roman", "Yu Mincho", "Hiragino Mincho ProN", serif;
+    html {
+      scroll-behavior: smooth;
     }
 
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(circle at 50% 50%, rgba(120,100,255,0.12), transparent 24%),
-        linear-gradient(180deg, #12005a 0%, #090033 58%, #02000f 100%);
-      pointer-events: none;
+    body {
+      background: #06001f;
+      color: #f4f1ff;
+      font-family: "Yu Mincho", "Hiragino Mincho ProN", "Times New Roman", serif;
+      line-height: 1.9;
     }
 
-    .stage {
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .cover {
       position: relative;
-      width: 100vw;
+      width: 100%;
       height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 48%, rgba(115,95,240,0.11), transparent 24%),
+        linear-gradient(180deg, #110052 0%, #08002d 58%, #02000d 100%);
     }
 
     .axis {
@@ -52,7 +50,7 @@
       );
       filter: drop-shadow(0 0 6px rgba(255,255,255,0.48));
       opacity: 0;
-      animation: axisAppear 4s ease forwards 0.2s, axisBreath 8s ease-in-out infinite 4.5s;
+      animation: axisAppear 4s ease forwards .2s, axisBreath 8s ease-in-out infinite 4.5s;
     }
 
     .title {
@@ -62,12 +60,10 @@
       transform: translateX(-50%);
       font-size: clamp(34px, 4vw, 62px);
       font-weight: 400;
-      letter-spacing: 0.16em;
+      letter-spacing: .16em;
       white-space: nowrap;
       opacity: 0;
-      text-shadow:
-        0 0 6px rgba(255,255,255,0.18),
-        0 0 14px rgba(255,255,255,0.12);
+      text-shadow: 0 0 6px rgba(255,255,255,.18), 0 0 14px rgba(255,255,255,.12);
       animation: titleAppear 4.2s ease forwards 2.2s;
     }
 
@@ -80,8 +76,8 @@
       transform: translateX(-50%);
       border-left: 22px solid transparent;
       border-right: 22px solid transparent;
-      border-bottom: 42px solid rgba(255,255,255,0.17);
-      filter: drop-shadow(0 0 9px rgba(255,255,255,0.34));
+      border-bottom: 42px solid rgba(255,255,255,.17);
+      filter: drop-shadow(0 0 9px rgba(255,255,255,.34));
       opacity: 0;
       animation: fadeIn 3.2s ease forwards 1.5s, prismBreath 8s ease-in-out infinite 5s;
     }
@@ -101,15 +97,13 @@
       position: absolute;
       top: 0;
       left: 50%;
-      width: 0.65px;
+      width: .65px;
       height: 155px;
       transform-origin: top center;
       background: currentColor;
       border-radius: 999px;
-      opacity: 0.42;
-      box-shadow:
-        0 0 2px currentColor,
-        0 0 5px currentColor;
+      opacity: .42;
+      box-shadow: 0 0 2px currentColor, 0 0 5px currentColor;
       animation: rayShade 8s ease-in-out infinite;
     }
 
@@ -128,9 +122,145 @@
       transform: translateX(-50%);
       font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
       font-size: 11px;
-      letter-spacing: 0.24em;
+      letter-spacing: .24em;
       opacity: 0;
       animation: fadeIn 3s ease forwards 5.8s;
+    }
+
+    .main {
+      background: linear-gradient(180deg, #02000d 0%, #08021e 40%, #faf8f2 40%, #faf8f2 100%);
+      color: #1f1c24;
+    }
+
+    .intro {
+      min-height: 100vh;
+      padding: 18vh 7vw 12vh;
+      background: #02000d;
+      color: #f4f1ff;
+    }
+
+    .intro-inner {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .kicker {
+      font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
+      font-size: 12px;
+      letter-spacing: .24em;
+      color: rgba(244,241,255,.56);
+      margin-bottom: 38px;
+    }
+
+    h2 {
+      font-size: clamp(28px, 4vw, 52px);
+      font-weight: 400;
+      letter-spacing: .08em;
+      line-height: 1.45;
+      margin-bottom: 34px;
+    }
+
+    .intro p {
+      font-size: clamp(15px, 1.45vw, 18px);
+      color: rgba(244,241,255,.82);
+      margin-bottom: 1.4em;
+    }
+
+    .content {
+      padding: 12vh 7vw 16vh;
+      background: #faf8f2;
+    }
+
+    .content-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-size: clamp(26px, 3vw, 42px);
+      font-weight: 400;
+      letter-spacing: .08em;
+      margin-bottom: 24px;
+    }
+
+    .lead {
+      max-width: 780px;
+      font-size: 17px;
+      color: #3d3942;
+      margin-bottom: 70px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+      margin-bottom: 96px;
+    }
+
+    .card {
+      border-top: 1px solid rgba(30,25,40,.26);
+      padding-top: 22px;
+      min-height: 220px;
+    }
+
+    .card h3 {
+      font-size: 20px;
+      font-weight: 400;
+      letter-spacing: .08em;
+      margin-bottom: 16px;
+    }
+
+    .card p {
+      font-size: 14.5px;
+      color: #4a4650;
+    }
+
+    .wide {
+      max-width: 860px;
+      margin: 0 auto 96px;
+      padding: 54px 0;
+      border-top: 1px solid rgba(30,25,40,.18);
+      border-bottom: 1px solid rgba(30,25,40,.18);
+    }
+
+    .wide h3 {
+      font-size: 26px;
+      font-weight: 400;
+      letter-spacing: .08em;
+      margin-bottom: 22px;
+    }
+
+    .wide p {
+      color: #403b45;
+      margin-bottom: 1.2em;
+    }
+
+    .list {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 18px 34px;
+      max-width: 860px;
+      margin-top: 30px;
+      font-size: 15px;
+    }
+
+    .list dt {
+      color: #77707c;
+      font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
+      letter-spacing: .08em;
+    }
+
+    .list dd {
+      color: #302c35;
+    }
+
+    .footer {
+      padding: 12vh 7vw;
+      background: #050018;
+      color: rgba(244,241,255,.68);
+      text-align: center;
+      font-size: 13px;
+      letter-spacing: .12em;
     }
 
     @keyframes fadeIn {
@@ -139,101 +269,135 @@
     }
 
     @keyframes axisAppear {
-      from {
-        opacity: 0;
-        transform: translateY(-22px);
-      }
-      to {
-        opacity: 0.66;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(-22px); }
+      to { opacity: .66; transform: translateY(0); }
     }
 
     @keyframes axisBreath {
-      0%, 100% { opacity: 0.56; }
-      50% { opacity: 0.78; }
+      0%, 100% { opacity: .56; }
+      50% { opacity: .78; }
     }
 
     @keyframes titleAppear {
-      from {
-        opacity: 0;
-        letter-spacing: 0.22em;
-        filter: blur(3px);
-      }
-      to {
-        opacity: 1;
-        letter-spacing: 0.16em;
-        filter: blur(0);
-      }
+      from { opacity: 0; letter-spacing: .22em; filter: blur(3px); }
+      to { opacity: 1; letter-spacing: .16em; filter: blur(0); }
     }
 
     @keyframes prismBreath {
-      0%, 100% {
-        opacity: 0.48;
-        filter: drop-shadow(0 0 7px rgba(255,255,255,0.26));
-      }
-      50% {
-        opacity: 0.64;
-        filter: drop-shadow(0 0 11px rgba(255,255,255,0.38));
-      }
+      0%, 100% { opacity: .48; filter: drop-shadow(0 0 7px rgba(255,255,255,.26)); }
+      50% { opacity: .64; filter: drop-shadow(0 0 11px rgba(255,255,255,.38)); }
     }
 
     @keyframes rayShade {
-      0%, 100% {
-        opacity: 0.24;
-        box-shadow:
-          0 0 1px currentColor,
-          0 0 3px currentColor;
-      }
-      50% {
-        opacity: 0.50;
-        box-shadow:
-          0 0 2px currentColor,
-          0 0 6px currentColor;
-      }
+      0%, 100% { opacity: .24; box-shadow: 0 0 1px currentColor, 0 0 3px currentColor; }
+      50% { opacity: .50; box-shadow: 0 0 2px currentColor, 0 0 6px currentColor; }
     }
 
-    @media (max-width: 700px) {
-      .title {
-        top: 36vh;
-        font-size: 34px;
+    @media (max-width: 850px) {
+      .grid {
+        grid-template-columns: 1fr;
       }
 
-      .prism {
-        top: 51vh;
-      }
-
-      .rainbow {
-        top: calc(51vh + 24px);
-        width: 125px;
-      }
-
-      .enter {
-        bottom: 17vh;
+      .list {
+        grid-template-columns: 1fr;
+        gap: 4px 0;
       }
     }
   </style>
 </head>
 
 <body>
-  <main class="stage">
+  <section class="cover" id="top">
     <div class="axis"></div>
-
     <h1 class="title">HUMAN OS</h1>
-
     <div class="prism"></div>
-
     <div class="rainbow">
-      <div class="ray"></div>
-      <div class="ray"></div>
-      <div class="ray"></div>
-      <div class="ray"></div>
-      <div class="ray"></div>
-      <div class="ray"></div>
-      <div class="ray"></div>
+      <div class="ray"></div><div class="ray"></div><div class="ray"></div>
+      <div class="ray"></div><div class="ray"></div><div class="ray"></div><div class="ray"></div>
     </div>
+    <a class="enter" href="#main">ENTER</a>
+  </section>
 
-    <div class="enter">ENTER</div>
+  <main class="main" id="main">
+    <section class="intro">
+      <div class="intro-inner">
+        <div class="kicker">OBSERVATION / HUMAN / LIFE</div>
+        <h2>観察から、<br>人間をもう一度ひらく。</h2>
+        <p>Human OS は、人間を一つの理論で説明するための場所ではありません。</p>
+        <p>身体、感情、思考、意識、関係性、そして生命の働きを、多様な視点から観察するための共通基盤です。</p>
+        <p>チャクラワークは、その入口のひとつです。</p>
+      </div>
+    </section>
+
+    <section class="content">
+      <div class="content-inner">
+        <h2 class="section-title">Human OSとは</h2>
+        <p class="lead">
+          人間を「身体」「心」「精神」「社会」に分けて理解するだけでなく、
+          それらをつなぐ働きとして観察するための、開かれた学びの場です。
+        </p>
+
+        <div class="grid">
+          <div class="card">
+            <h3>Observe</h3>
+            <p>まず観察する。信じることでも、否定することでもなく、自分自身の体験を丁寧に観ることから始めます。</p>
+          </div>
+
+          <div class="card">
+            <h3>Connect</h3>
+            <p>チャクラ、武道、東洋思想、心理学、マズロー、ジョハリ、AQALなどを、統合知として結びます。</p>
+          </div>
+
+          <div class="card">
+            <h3>Return</h3>
+            <p>新しい何かを足すのではなく、元の氣へ還る。観察を通じて、本来の生命の流れを取り戻します。</p>
+          </div>
+        </div>
+
+        <div class="wide">
+          <h3>チャクラワーク / セミナー</h3>
+          <p>
+            チャクラワークは、Human OS を体験的に理解するための実践です。
+            第七チャクラまで自分で観察した受講者を、ここでは「マスター」と呼びます。
+          </p>
+          <p>
+            マスター専用ページでは、体験の共有、ケーススタディ、観察記録、研究ノートを蓄積し、
+            螺旋状に学びを深めていく場を構想しています。
+          </p>
+
+          <dl class="list">
+            <dt>対象</dt>
+            <dd>チャクラワーク受講者、実践者、共同観察に関心のある方</dd>
+
+            <dt>目的</dt>
+            <dd>体験を記録し、比較し、深め、人間理解の共通基盤を育てること</dd>
+
+            <dt>今後</dt>
+            <dd>セミナー案内、マスター専用閲覧ページ、ケース投稿フォームを順次整備</dd>
+          </dl>
+        </div>
+
+        <div class="wide">
+          <h3>統合知のライブラリ</h3>
+          <p>
+            人体三軸、ジョハリの窓、マズロー、インテグラル理論、東洋思想、五行、ヴァーユ、ヌーソロジー的観察点などを、
+            既存の知識の寄せ集めではなく、人間を観察するための対応関係として整理していきます。
+          </p>
+        </div>
+
+        <div class="wide">
+          <h3>共同観察</h3>
+          <p>
+            Human OS は完成した理論ではありません。
+            実践者の体験、指導者の観察、日々の変化を蓄積しながら成熟していく、共同観察プロジェクトです。
+          </p>
+        </div>
+      </div>
+    </section>
   </main>
+
+  <footer class="footer">
+    HUMAN OS / OBSERVATION BEGINS WITH EXPERIENCE
+  </footer>
 </body>
 </html>
