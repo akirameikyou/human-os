@@ -12,7 +12,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #070024;
+      background: #070022;
       color: #fff;
       font-family: "Times New Roman", "Yu Mincho", "Hiragino Mincho ProN", serif;
     }
@@ -22,9 +22,8 @@
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(circle at 50% 47%, rgba(150,125,255,0.16), transparent 23%),
-        radial-gradient(circle at 50% 66%, rgba(80,50,190,0.11), transparent 31%),
-        linear-gradient(180deg, #12005c 0%, #090036 60%, #020010 100%);
+        radial-gradient(circle at 50% 50%, rgba(120,100,255,0.12), transparent 24%),
+        linear-gradient(180deg, #12005a 0%, #090033 58%, #02000f 100%);
       pointer-events: none;
     }
 
@@ -39,21 +38,21 @@
 
     .axis {
       position: absolute;
-      top: -8vh;
+      top: -10vh;
       left: 50%;
       width: 1px;
-      height: 64vh;
+      height: 66vh;
       background: linear-gradient(
         180deg,
         transparent 0%,
         rgba(255,255,255,0.10) 8%,
-        rgba(255,255,255,0.55) 46%,
-        rgba(255,255,255,0.92) 76%,
-        rgba(255,255,255,0.48) 100%
+        rgba(255,255,255,0.42) 45%,
+        rgba(255,255,255,0.88) 75%,
+        rgba(255,255,255,0.52) 100%
       );
-      filter: drop-shadow(0 0 7px rgba(255,255,255,0.55));
+      filter: drop-shadow(0 0 6px rgba(255,255,255,0.48));
       opacity: 0;
-      animation: axisAppear 4.2s ease forwards 0.2s, axisBreath 8s ease-in-out infinite 4.5s;
+      animation: axisAppear 4s ease forwards 0.2s, axisBreath 8s ease-in-out infinite 4.5s;
     }
 
     .title {
@@ -67,19 +66,9 @@
       white-space: nowrap;
       opacity: 0;
       text-shadow:
-        0 0 10px rgba(255,255,255,0.18),
-        0 0 34px rgba(180,160,255,0.22);
-      animation: titleAppear 4.4s ease forwards 2.3s;
-    }
-
-    .title::before {
-      content: "";
-      position: absolute;
-      inset: -28px -80px;
-      background: radial-gradient(circle, rgba(180,160,255,0.16), transparent 62%);
-      z-index: -1;
-      opacity: 0;
-      animation: titleHalo 5.2s ease forwards 2.8s;
+        0 0 6px rgba(255,255,255,0.18),
+        0 0 14px rgba(255,255,255,0.12);
+      animation: titleAppear 4.2s ease forwards 2.2s;
     }
 
     .prism {
@@ -91,18 +80,18 @@
       transform: translateX(-50%);
       border-left: 22px solid transparent;
       border-right: 22px solid transparent;
-      border-bottom: 42px solid rgba(255,255,255,0.18);
-      filter: drop-shadow(0 0 10px rgba(255,255,255,0.38));
+      border-bottom: 42px solid rgba(255,255,255,0.17);
+      filter: drop-shadow(0 0 9px rgba(255,255,255,0.34));
       opacity: 0;
-      animation: fadeIn 3.4s ease forwards 1.6s, prismBreath 8s ease-in-out infinite 5s;
+      animation: fadeIn 3.2s ease forwards 1.5s, prismBreath 8s ease-in-out infinite 5s;
     }
 
     .rainbow {
       position: absolute;
-      top: calc(52vh + 42px);
+      top: calc(52vh + 24px);
       left: 50%;
-      width: 150px;
-      height: 170px;
+      width: 154px;
+      height: 190px;
       transform: translateX(-50%);
       opacity: 0;
       animation: fadeIn 4s ease forwards 2.4s;
@@ -112,26 +101,25 @@
       position: absolute;
       top: 0;
       left: 50%;
-      width: 0.7px;
-      height: 146px;
+      width: 0.65px;
+      height: 155px;
       transform-origin: top center;
       background: currentColor;
       border-radius: 999px;
-      opacity: 0.46;
+      opacity: 0.42;
       box-shadow:
         0 0 2px currentColor,
-        0 0 5px currentColor,
-        0 0 10px rgba(255,255,255,0.03);
+        0 0 5px currentColor;
       animation: rayShade 8s ease-in-out infinite;
     }
 
-    .ray:nth-child(1) { color: #cc3030; transform: translateX(-50%) rotate(16deg); }
-    .ray:nth-child(2) { color: #d98222; transform: translateX(-50%) rotate(10.5deg); }
-    .ray:nth-child(3) { color: #d6c94a; transform: translateX(-50%) rotate(5.2deg); }
-    .ray:nth-child(4) { color: #43cf64; transform: translateX(-50%) rotate(0deg); }
-    .ray:nth-child(5) { color: #2fc4d6; transform: translateX(-50%) rotate(-5.2deg); }
-    .ray:nth-child(6) { color: #4a72d6; transform: translateX(-50%) rotate(-10.5deg); }
-    .ray:nth-child(7) { color: #8a52d6; transform: translateX(-50%) rotate(-16deg); }
+    .ray:nth-child(1) { color: #bd3333; transform: translateX(-50%) rotate(16deg); }
+    .ray:nth-child(2) { color: #c77723; transform: translateX(-50%) rotate(10.5deg); }
+    .ray:nth-child(3) { color: #c9bd45; transform: translateX(-50%) rotate(5.2deg); }
+    .ray:nth-child(4) { color: #3fbd62; transform: translateX(-50%) rotate(0deg); }
+    .ray:nth-child(5) { color: #31b7c8; transform: translateX(-50%) rotate(-5.2deg); }
+    .ray:nth-child(6) { color: #496ec8; transform: translateX(-50%) rotate(-10.5deg); }
+    .ray:nth-child(7) { color: #8050c8; transform: translateX(-50%) rotate(-16deg); }
 
     .enter {
       position: absolute;
@@ -153,17 +141,17 @@
     @keyframes axisAppear {
       from {
         opacity: 0;
-        transform: translateY(-18px);
+        transform: translateY(-22px);
       }
       to {
-        opacity: 0.72;
+        opacity: 0.66;
         transform: translateY(0);
       }
     }
 
     @keyframes axisBreath {
-      0%, 100% { opacity: 0.58; }
-      50% { opacity: 0.82; }
+      0%, 100% { opacity: 0.56; }
+      50% { opacity: 0.78; }
     }
 
     @keyframes titleAppear {
@@ -179,34 +167,29 @@
       }
     }
 
-    @keyframes titleHalo {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
     @keyframes prismBreath {
       0%, 100% {
         opacity: 0.48;
-        filter: drop-shadow(0 0 8px rgba(255,255,255,0.28));
+        filter: drop-shadow(0 0 7px rgba(255,255,255,0.26));
       }
       50% {
-        opacity: 0.68;
-        filter: drop-shadow(0 0 13px rgba(255,255,255,0.42));
+        opacity: 0.64;
+        filter: drop-shadow(0 0 11px rgba(255,255,255,0.38));
       }
     }
 
     @keyframes rayShade {
       0%, 100% {
-        opacity: 0.28;
+        opacity: 0.24;
         box-shadow:
           0 0 1px currentColor,
-          0 0 4px currentColor;
+          0 0 3px currentColor;
       }
       50% {
-        opacity: 0.58;
+        opacity: 0.50;
         box-shadow:
           0 0 2px currentColor,
-          0 0 7px currentColor;
+          0 0 6px currentColor;
       }
     }
 
@@ -221,7 +204,7 @@
       }
 
       .rainbow {
-        top: calc(51vh + 42px);
+        top: calc(51vh + 24px);
         width: 125px;
       }
 
