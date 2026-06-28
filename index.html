@@ -7,10 +7,7 @@
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html {
-      scroll-behavior: smooth;
-    }
+    html { scroll-behavior: smooth; }
 
     body {
       background: #06001f;
@@ -19,10 +16,7 @@
       line-height: 1.9;
     }
 
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
+    a { color: inherit; text-decoration: none; }
 
     .cover {
       position: relative;
@@ -55,7 +49,7 @@
 
     .title {
       position: absolute;
-      top: 38vh;
+      top: 35.5vh;
       left: 50%;
       transform: translateX(-50%);
       font-size: clamp(34px, 4vw, 62px);
@@ -67,9 +61,31 @@
       animation: titleAppear 4.2s ease forwards 2.2s;
     }
 
+    .cover-phrase {
+      position: absolute;
+      top: 43.8vh;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      font-size: clamp(15px, 1.4vw, 20px);
+      letter-spacing: .16em;
+      line-height: 1.9;
+      white-space: nowrap;
+      opacity: 0;
+      animation: fadeIn 3.6s ease forwards 3.1s;
+    }
+
+    .cover-phrase span {
+      display: block;
+      font-family: "Times New Roman", serif;
+      font-size: .72em;
+      letter-spacing: .18em;
+      color: rgba(244,241,255,.55);
+    }
+
     .prism {
       position: absolute;
-      top: 52vh;
+      top: 54vh;
       left: 50%;
       width: 0;
       height: 0;
@@ -84,7 +100,7 @@
 
     .rainbow {
       position: absolute;
-      top: calc(52vh + 24px);
+      top: calc(54vh + 24px);
       left: 50%;
       width: 154px;
       height: 190px;
@@ -117,7 +133,7 @@
 
     .enter {
       position: absolute;
-      bottom: 15.5vh;
+      bottom: 13.5vh;
       left: 50%;
       transform: translateX(-50%);
       font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
@@ -128,7 +144,7 @@
     }
 
     .main {
-      background: linear-gradient(180deg, #02000d 0%, #08021e 40%, #faf8f2 40%, #faf8f2 100%);
+      background: #faf8f2;
       color: #1f1c24;
     }
 
@@ -139,7 +155,12 @@
       color: #f4f1ff;
     }
 
-    .intro-inner {
+    .intro-inner, .content-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    .intro-text {
       max-width: 760px;
       margin: 0 auto;
     }
@@ -168,23 +189,25 @@
 
     .content {
       padding: 12vh 7vw 16vh;
-      background: #faf8f2;
-    }
-
-    .content-inner {
-      max-width: 1080px;
-      margin: 0 auto;
     }
 
     .section-title {
       font-size: clamp(26px, 3vw, 42px);
       font-weight: 400;
       letter-spacing: .08em;
-      margin-bottom: 24px;
+      margin-bottom: 18px;
+    }
+
+    .section-sub {
+      font-family: "Times New Roman", serif;
+      color: #8b8492;
+      letter-spacing: .12em;
+      margin-bottom: 26px;
+      font-size: 13px;
     }
 
     .lead {
-      max-width: 780px;
+      max-width: 820px;
       font-size: 17px;
       color: #3d3942;
       margin-bottom: 70px;
@@ -207,7 +230,14 @@
       font-size: 20px;
       font-weight: 400;
       letter-spacing: .08em;
-      margin-bottom: 16px;
+      margin-bottom: 10px;
+    }
+
+    .aphorism {
+      font-size: 13px;
+      color: #8a828f;
+      font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
+      margin-bottom: 18px;
     }
 
     .card p {
@@ -216,7 +246,7 @@
     }
 
     .wide {
-      max-width: 860px;
+      max-width: 900px;
       margin: 0 auto 96px;
       padding: 54px 0;
       border-top: 1px solid rgba(30,25,40,.18);
@@ -227,7 +257,7 @@
       font-size: 26px;
       font-weight: 400;
       letter-spacing: .08em;
-      margin-bottom: 22px;
+      margin-bottom: 10px;
     }
 
     .wide p {
@@ -263,44 +293,73 @@
       letter-spacing: .12em;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes axisAppear {
       from { opacity: 0; transform: translateY(-22px); }
       to { opacity: .66; transform: translateY(0); }
     }
-
     @keyframes axisBreath {
       0%, 100% { opacity: .56; }
       50% { opacity: .78; }
     }
-
     @keyframes titleAppear {
       from { opacity: 0; letter-spacing: .22em; filter: blur(3px); }
       to { opacity: 1; letter-spacing: .16em; filter: blur(0); }
     }
-
     @keyframes prismBreath {
       0%, 100% { opacity: .48; filter: drop-shadow(0 0 7px rgba(255,255,255,.26)); }
       50% { opacity: .64; filter: drop-shadow(0 0 11px rgba(255,255,255,.38)); }
     }
-
     @keyframes rayShade {
       0%, 100% { opacity: .24; box-shadow: 0 0 1px currentColor, 0 0 3px currentColor; }
       50% { opacity: .50; box-shadow: 0 0 2px currentColor, 0 0 6px currentColor; }
     }
 
     @media (max-width: 850px) {
-      .grid {
-        grid-template-columns: 1fr;
+      .grid { grid-template-columns: 1fr; }
+      .list { grid-template-columns: 1fr; gap: 4px 0; }
+      .wide { margin-bottom: 64px; }
+    }
+
+    @media (max-width: 600px) {
+      .title {
+        top: 33vh;
+        font-size: 32px;
+        letter-spacing: .13em;
       }
 
-      .list {
-        grid-template-columns: 1fr;
-        gap: 4px 0;
+      .cover-phrase {
+        top: 41.5vh;
+        font-size: 14px;
+        letter-spacing: .11em;
+        width: 90%;
+        white-space: normal;
+      }
+
+      .prism { top: 55vh; }
+      .rainbow {
+        top: calc(55vh + 24px);
+        width: 124px;
+        transform: translateX(-50%) scale(.88);
+      }
+
+      .enter { bottom: 12vh; }
+
+      .intro {
+        padding: 14vh 7vw 10vh;
+      }
+
+      .content {
+        padding: 10vh 7vw 12vh;
+      }
+
+      .lead {
+        font-size: 15.5px;
+        margin-bottom: 52px;
+      }
+
+      .card {
+        min-height: auto;
       }
     }
   </style>
@@ -310,83 +369,100 @@
   <section class="cover" id="top">
     <div class="axis"></div>
     <h1 class="title">HUMAN OS</h1>
+
+    <div class="cover-phrase">
+      自分を知り、世界を知る。
+      <span>Know yourself, know the world.</span>
+    </div>
+
     <div class="prism"></div>
+
     <div class="rainbow">
       <div class="ray"></div><div class="ray"></div><div class="ray"></div>
       <div class="ray"></div><div class="ray"></div><div class="ray"></div><div class="ray"></div>
     </div>
+
     <a class="enter" href="#main">ENTER</a>
   </section>
 
   <main class="main" id="main">
     <section class="intro">
       <div class="intro-inner">
-        <div class="kicker">OBSERVATION / HUMAN / LIFE</div>
-        <h2>観察から、<br>人間をもう一度ひらく。</h2>
-        <p>Human OS は、人間を一つの理論で説明するための場所ではありません。</p>
-        <p>身体、感情、思考、意識、関係性、そして生命の働きを、多様な視点から観察するための共通基盤です。</p>
-        <p>チャクラワークは、その入口のひとつです。</p>
+        <div class="intro-text">
+          <div class="kicker">OBSERVATION / HUMAN / WORLD</div>
+          <h2>自分を知り、<br>世界を知る。</h2>
+          <p>Human OS is not a single theory for explaining humanity.</p>
+          <p>Human OS は、人間を一つの理論で説明するための場所ではありません。</p>
+          <p>身体、感情、思考、意識、関係性、そして生命の働きを、多様な視点から観察するための共通基盤です。</p>
+        </div>
       </div>
     </section>
 
     <section class="content">
       <div class="content-inner">
         <h2 class="section-title">Human OSとは</h2>
+        <div class="section-sub">A shared ground for observing human nature</div>
         <p class="lead">
-          人間を「身体」「心」「精神」「社会」に分けて理解するだけでなく、
-          それらをつなぐ働きとして観察するための、開かれた学びの場です。
+          Human OS は、人間について語られてきた多様な知を、互いに競わせるのではなく、
+          観察の視点として並べ、その対応関係を探究するための、開かれた学びの場です。
         </p>
 
         <div class="grid">
           <div class="card">
             <h3>Observe</h3>
+            <div class="aphorism">観察は、理解の始まり。</div>
             <p>まず観察する。信じることでも、否定することでもなく、自分自身の体験を丁寧に観ることから始めます。</p>
           </div>
 
           <div class="card">
             <h3>Connect</h3>
-            <p>チャクラ、武道、東洋思想、心理学、マズロー、ジョハリ、AQALなどを、統合知として結びます。</p>
+            <div class="aphorism">知は、対応関係の中でひらかれる。</div>
+            <p>チャクラ、武道、東洋・西洋思想、心理学、解剖学、AQAL、占星術、算命学などを、統合観察の視点から結びます。</p>
           </div>
 
           <div class="card">
             <h3>Return</h3>
-            <p>新しい何かを足すのではなく、元の氣へ還る。観察を通じて、本来の生命の流れを取り戻します。</p>
+            <div class="aphorism">足すのではなく、元の氣へ還る。</div>
+            <p>新しい何かを足すのではなく、観察を通じて本来の生命の流れを思い出します。</p>
           </div>
         </div>
 
         <div class="wide">
-          <h3>チャクラワーク / セミナー</h3>
+          <h3>チクラカムワザ</h3>
+          <div class="aphorism">皆で丸く座り、共に観る。</div>
           <p>
-            チャクラワークは、Human OS を体験的に理解するための実践です。
-            第七チャクラまで自分で観察した受講者を、ここでは「マスター」と呼びます。
+            チクラカムワザ（千座神和座）は、Human OS を体験的に理解するための実践です。
+            一般的な「チャクラワーク」という表現ではなく、共に座り、共に観察する場として、この名を用います。
           </p>
           <p>
+            第七チャクラまで自分で観察した受講者を、ここでは「マスター」と呼びます。
             マスター専用ページでは、体験の共有、ケーススタディ、観察記録、研究ノートを蓄積し、
             螺旋状に学びを深めていく場を構想しています。
           </p>
 
           <dl class="list">
             <dt>対象</dt>
-            <dd>チャクラワーク受講者、実践者、共同観察に関心のある方</dd>
-
+            <dd>チクラカムワザ受講者、実践者、共同観察に関心のある方</dd>
             <dt>目的</dt>
             <dd>体験を記録し、比較し、深め、人間理解の共通基盤を育てること</dd>
-
             <dt>今後</dt>
             <dd>セミナー案内、マスター専用閲覧ページ、ケース投稿フォームを順次整備</dd>
           </dl>
         </div>
 
         <div class="wide">
-          <h3>統合知のライブラリ</h3>
+          <h3>Observation Library</h3>
+          <div class="aphorism">世界には、多くの観察法がある。</div>
           <p>
-            人体三軸、ジョハリの窓、マズロー、インテグラル理論、東洋思想、五行、ヴァーユ、ヌーソロジー的観察点などを、
-            既存の知識の寄せ集めではなく、人間を観察するための対応関係として整理していきます。
+            人体三軸、ジョハリの窓、マズロー、インテグラル理論、Human Design、東洋思想、五行、ヴァーユ、
+            ヌーソロジー的観察点、占星術、算命学などを、既存知識の寄せ集めではなく、
+            人間を観察するための対応関係として整理していきます。
           </p>
         </div>
 
         <div class="wide">
-          <h3>共同観察</h3>
+          <h3>Co-Observation</h3>
+          <div class="aphorism">体験は、共有されることで深まる。</div>
           <p>
             Human OS は完成した理論ではありません。
             実践者の体験、指導者の観察、日々の変化を蓄積しながら成熟していく、共同観察プロジェクトです。
@@ -397,7 +473,7 @@
   </main>
 
   <footer class="footer">
-    HUMAN OS / OBSERVATION BEGINS WITH EXPERIENCE
+    HUMAN OS / KNOW YOURSELF, KNOW THE WORLD
   </footer>
 </body>
 </html>
