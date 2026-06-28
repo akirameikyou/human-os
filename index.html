@@ -49,7 +49,7 @@
 
     .title {
       position: absolute;
-      top: 35.5vh;
+      top: 38vh;
       left: 50%;
       transform: translateX(-50%);
       font-size: clamp(34px, 4vw, 62px);
@@ -61,31 +61,9 @@
       animation: titleAppear 4.2s ease forwards 2.2s;
     }
 
-    .cover-phrase {
-      position: absolute;
-      top: 43.8vh;
-      left: 50%;
-      transform: translateX(-50%);
-      text-align: center;
-      font-size: clamp(15px, 1.4vw, 20px);
-      letter-spacing: .16em;
-      line-height: 1.9;
-      white-space: nowrap;
-      opacity: 0;
-      animation: fadeIn 3.6s ease forwards 3.1s;
-    }
-
-    .cover-phrase span {
-      display: block;
-      font-family: "Times New Roman", serif;
-      font-size: .72em;
-      letter-spacing: .18em;
-      color: rgba(244,241,255,.55);
-    }
-
     .prism {
       position: absolute;
-      top: 54vh;
+      top: 52vh;
       left: 50%;
       width: 0;
       height: 0;
@@ -100,7 +78,7 @@
 
     .rainbow {
       position: absolute;
-      top: calc(54vh + 24px);
+      top: calc(52vh + 24px);
       left: 50%;
       width: 154px;
       height: 190px;
@@ -133,7 +111,7 @@
 
     .enter {
       position: absolute;
-      bottom: 13.5vh;
+      bottom: 15.5vh;
       left: 50%;
       transform: translateX(-50%);
       font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
@@ -155,7 +133,8 @@
       color: #f4f1ff;
     }
 
-    .intro-inner, .content-inner {
+    .intro-inner,
+    .content-inner {
       max-width: 1080px;
       margin: 0 auto;
     }
@@ -207,10 +186,77 @@
     }
 
     .lead {
-      max-width: 820px;
+      max-width: 860px;
       font-size: 17px;
       color: #3d3942;
       margin-bottom: 70px;
+    }
+
+    .knowledge-map {
+      position: relative;
+      max-width: 980px;
+      margin: 0 auto 110px;
+      padding: 60px 0;
+      display: grid;
+      grid-template-columns: 1fr 220px 1fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .map-center {
+      border: 1px solid rgba(30,25,40,.24);
+      border-radius: 999px;
+      width: 220px;
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 18px;
+      letter-spacing: .12em;
+      background: rgba(255,255,255,.45);
+    }
+
+    .map-side {
+      display: grid;
+      gap: 22px;
+    }
+
+    .map-item {
+      border-top: 1px solid rgba(30,25,40,.22);
+      padding-top: 16px;
+    }
+
+    .map-item h3 {
+      font-size: 20px;
+      font-weight: 400;
+      letter-spacing: .08em;
+      margin-bottom: 8px;
+    }
+
+    .map-item p {
+      font-size: 14.5px;
+      color: #4a4650;
+    }
+
+    .axis-label {
+      max-width: 860px;
+      margin: 0 auto 90px;
+      padding: 42px 0;
+      border-top: 1px solid rgba(30,25,40,.18);
+      border-bottom: 1px solid rgba(30,25,40,.18);
+    }
+
+    .axis-label h3 {
+      font-size: 26px;
+      font-weight: 400;
+      letter-spacing: .08em;
+      margin-bottom: 14px;
+    }
+
+    .axis-label p {
+      color: #403b45;
+      margin-bottom: 1.2em;
     }
 
     .grid {
@@ -223,7 +269,7 @@
     .card {
       border-top: 1px solid rgba(30,25,40,.26);
       padding-top: 22px;
-      min-height: 220px;
+      min-height: 210px;
     }
 
     .card h3 {
@@ -294,56 +340,75 @@
     }
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
     @keyframes axisAppear {
       from { opacity: 0; transform: translateY(-22px); }
       to { opacity: .66; transform: translateY(0); }
     }
+
     @keyframes axisBreath {
       0%, 100% { opacity: .56; }
       50% { opacity: .78; }
     }
+
     @keyframes titleAppear {
       from { opacity: 0; letter-spacing: .22em; filter: blur(3px); }
       to { opacity: 1; letter-spacing: .16em; filter: blur(0); }
     }
+
     @keyframes prismBreath {
       0%, 100% { opacity: .48; filter: drop-shadow(0 0 7px rgba(255,255,255,.26)); }
       50% { opacity: .64; filter: drop-shadow(0 0 11px rgba(255,255,255,.38)); }
     }
+
     @keyframes rayShade {
       0%, 100% { opacity: .24; box-shadow: 0 0 1px currentColor, 0 0 3px currentColor; }
       50% { opacity: .50; box-shadow: 0 0 2px currentColor, 0 0 6px currentColor; }
     }
 
-    @media (max-width: 850px) {
-      .grid { grid-template-columns: 1fr; }
-      .list { grid-template-columns: 1fr; gap: 4px 0; }
-      .wide { margin-bottom: 64px; }
+    @media (max-width: 900px) {
+      .knowledge-map {
+        grid-template-columns: 1fr;
+        padding: 30px 0;
+      }
+
+      .map-center {
+        order: -1;
+        margin: 0 auto 20px;
+        width: 190px;
+        height: 190px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .list {
+        grid-template-columns: 1fr;
+        gap: 4px 0;
+      }
+
+      .wide {
+        margin-bottom: 64px;
+      }
     }
 
     @media (max-width: 600px) {
       .title {
-        top: 33vh;
+        top: 36vh;
         font-size: 32px;
         letter-spacing: .13em;
       }
 
-      .cover-phrase {
-        top: 41.5vh;
-        font-size: 14px;
-        letter-spacing: .11em;
-        width: 90%;
-        white-space: normal;
-      }
+      .prism { top: 51.5vh; }
 
-      .prism { top: 55vh; }
       .rainbow {
-        top: calc(55vh + 24px);
+        top: calc(51.5vh + 24px);
         width: 124px;
         transform: translateX(-50%) scale(.88);
       }
 
-      .enter { bottom: 12vh; }
+      .enter { bottom: 13vh; }
 
       .intro {
         padding: 14vh 7vw 10vh;
@@ -370,11 +435,6 @@
     <div class="axis"></div>
     <h1 class="title">HUMAN OS</h1>
 
-    <div class="cover-phrase">
-      自分を知り、世界を知る。
-      <span>Know yourself, know the world.</span>
-    </div>
-
     <div class="prism"></div>
 
     <div class="rainbow">
@@ -391,7 +451,7 @@
         <div class="intro-text">
           <div class="kicker">OBSERVATION / HUMAN / WORLD</div>
           <h2>自分を知り、<br>世界を知る。</h2>
-          <p>Human OS is not a single theory for explaining humanity.</p>
+          <p>Know yourself, know the world.</p>
           <p>Human OS は、人間を一つの理論で説明するための場所ではありません。</p>
           <p>身体、感情、思考、意識、関係性、そして生命の働きを、多様な視点から観察するための共通基盤です。</p>
         </div>
@@ -400,12 +460,59 @@
 
     <section class="content">
       <div class="content-inner">
-        <h2 class="section-title">Human OSとは</h2>
-        <div class="section-sub">A shared ground for observing human nature</div>
+        <h2 class="section-title">知の地図</h2>
+        <div class="section-sub">A map of human understanding</div>
         <p class="lead">
-          Human OS は、人間について語られてきた多様な知を、互いに競わせるのではなく、
-          観察の視点として並べ、その対応関係を探究するための、開かれた学びの場です。
+          Human OS は、人間について語られてきた多様な知を、寄せ集めるための場所ではありません。
+          抽象度をそろえ、観察の視点として並べ、その対応関係を探究するための開かれた学びの場です。
         </p>
+
+        <div class="knowledge-map">
+          <div class="map-side">
+            <div class="map-item">
+              <h3>東洋の知</h3>
+              <p>タオ、陰陽、五行、神道、仏教、インド哲学、ヴェーダ、四柱推命、算命学、風水など。</p>
+            </div>
+            <div class="map-item">
+              <h3>身体と実践</h3>
+              <p>武道、呼吸、瞑想、ヨガ、チクラカムワザ、身体技法、体験を通した観察。</p>
+            </div>
+            <div class="map-item">
+              <h3>象徴体系</h3>
+              <p>チャクラ、占星術、Human Design、ヌーソロジー的観察点、神話、元型、象徴言語。</p>
+            </div>
+          </div>
+
+          <div class="map-center">
+            観察<br>OBSERVATION
+          </div>
+
+          <div class="map-side">
+            <div class="map-item">
+              <h3>西洋の知</h3>
+              <p>古代哲学、キリスト教神学、近代思想、現象学、心理学、統合思想、AQALなど。</p>
+            </div>
+            <div class="map-item">
+              <h3>科学の知</h3>
+              <p>解剖学、生理学、神経科学、心理学、認知科学、化学的・物理的知見。</p>
+            </div>
+            <div class="map-item">
+              <h3>共同観察</h3>
+              <p>ケーススタディ、観察記録、マスター専用ページ、体験の蓄積と応答。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="axis-label">
+          <h3>日本という観察点</h3>
+          <p>
+            東洋と西洋のあいだに位置する日本は、単なる中間ではなく、多様な知を翻訳し、響き合わせる観察点として捉えることができます。
+          </p>
+          <p>
+            八百万の神という感覚は、一つだけを正しいとするのではなく、多様な現れを認め、それらの関係を観る姿勢でもあります。
+            チクラカムワザ（千座神和座）は、その「和」のあり方を体験的に象徴する学びの場です。
+          </p>
+        </div>
 
         <div class="grid">
           <div class="card">
@@ -417,7 +524,7 @@
           <div class="card">
             <h3>Connect</h3>
             <div class="aphorism">知は、対応関係の中でひらかれる。</div>
-            <p>チャクラ、武道、東洋・西洋思想、心理学、解剖学、AQAL、占星術、算命学などを、統合観察の視点から結びます。</p>
+            <p>思想、哲学、科学、象徴体系、身体実践を、優劣ではなく観察視点として並べ、関係を見出します。</p>
           </div>
 
           <div class="card">
@@ -432,7 +539,7 @@
           <div class="aphorism">皆で丸く座り、共に観る。</div>
           <p>
             チクラカムワザ（千座神和座）は、Human OS を体験的に理解するための実践です。
-            一般的な「チャクラワーク」という表現ではなく、共に座り、共に観察する場として、この名を用います。
+            共に座り、共に観察し、体験を深めていく学びの場です。
           </p>
           <p>
             第七チャクラまで自分で観察した受講者を、ここでは「マスター」と呼びます。
@@ -454,9 +561,9 @@
           <h3>Observation Library</h3>
           <div class="aphorism">世界には、多くの観察法がある。</div>
           <p>
-            人体三軸、ジョハリの窓、マズロー、インテグラル理論、Human Design、東洋思想、五行、ヴァーユ、
-            ヌーソロジー的観察点、占星術、算命学などを、既存知識の寄せ集めではなく、
-            人間を観察するための対応関係として整理していきます。
+            Observation Library では、思想、哲学、科学、象徴体系、身体実践を、
+            人間を観察するための知として整理します。
+            それぞれを混ぜ合わせるのではなく、対応関係を丁寧に観るための地図を育てていきます。
           </p>
         </div>
 
