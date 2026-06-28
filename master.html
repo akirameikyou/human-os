@@ -671,7 +671,7 @@ function checkPassword(){
   if(value === MASTER_KEY){
     document.getElementById("lock").style.display = "none";
     document.getElementById("master").classList.add("active");
-    location.hash = "master";
+    document.getElementById("master").scrollIntoView({ behavior: "smooth" });
     selectChakra("c3");
   }else{
     document.getElementById("error").textContent = "パスワードが違います。";
