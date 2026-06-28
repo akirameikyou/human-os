@@ -12,7 +12,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #12035c;
+      background: #090032;
       color: #fff;
       font-family: "Times New Roman", "Yu Mincho", "Hiragino Mincho ProN", serif;
     }
@@ -22,9 +22,9 @@
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(circle at 50% 42%, rgba(255,255,255,0.08), transparent 23%),
-        radial-gradient(circle at 50% 72%, rgba(120,90,255,0.18), transparent 28%),
-        linear-gradient(180deg, #17056f 0%, #110252 58%, #080120 100%);
+        radial-gradient(circle at 50% 48%, rgba(130,110,255,0.18), transparent 22%),
+        radial-gradient(circle at 50% 68%, rgba(90,60,210,0.13), transparent 30%),
+        linear-gradient(180deg, #12005c 0%, #0a0139 58%, #030013 100%);
       pointer-events: none;
     }
 
@@ -37,92 +37,108 @@
       align-items: center;
     }
 
-    .title {
-      position: absolute;
-      top: 34vh;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: clamp(30px, 4vw, 58px);
-      font-weight: 400;
-      letter-spacing: 0.12em;
-      white-space: nowrap;
-      opacity: 0;
-      animation: fadeIn 3.6s ease forwards 3.2s;
-    }
-
     .axis {
       position: absolute;
-      top: 4vh;
+      top: 0;
       left: 50%;
       width: 1px;
-      height: 55vh;
+      height: 58vh;
       background: linear-gradient(
         180deg,
         transparent 0%,
-        rgba(255,255,255,0.25) 8%,
-        rgba(255,255,255,0.95) 48%,
-        rgba(255,255,255,0.62) 100%
+        rgba(255,255,255,0.12) 14%,
+        rgba(255,255,255,0.9) 58%,
+        rgba(255,255,255,0.58) 100%
       );
-      filter: drop-shadow(0 0 8px rgba(255,255,255,0.8));
+      filter: drop-shadow(0 0 8px rgba(255,255,255,0.65));
       opacity: 0;
-      animation: fadeIn 3s ease forwards 0.6s, axisBreathe 6s ease-in-out infinite 3s;
+      animation: fadeIn 3s ease forwards 0.4s, axisBreathe 7s ease-in-out infinite 3s;
+    }
+
+    .title {
+      position: absolute;
+      top: 38vh;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: clamp(34px, 4vw, 62px);
+      font-weight: 400;
+      letter-spacing: 0.16em;
+      white-space: nowrap;
+      text-shadow: 0 0 18px rgba(255,255,255,0.25);
+      opacity: 0;
+      animation: fadeIn 3.8s ease forwards 2.8s;
     }
 
     .prism {
       position: absolute;
-      top: 49vh;
+      top: 52vh;
       left: 50%;
       width: 0;
       height: 0;
       transform: translateX(-50%);
-      border-left: 18px solid transparent;
-      border-right: 18px solid transparent;
-      border-bottom: 34px solid rgba(255,255,255,0.34);
-      filter: drop-shadow(0 0 10px rgba(255,255,255,0.55));
+      border-left: 22px solid transparent;
+      border-right: 22px solid transparent;
+      border-bottom: 42px solid rgba(255,255,255,0.30);
+      filter: drop-shadow(0 0 12px rgba(255,255,255,0.50));
       opacity: 0;
-      animation: fadeIn 3s ease forwards 1.8s;
+      animation: fadeIn 3s ease forwards 1.7s;
+    }
+
+    .prism::after {
+      content: "";
+      position: absolute;
+      left: -16px;
+      top: 28px;
+      width: 32px;
+      height: 1px;
+      background: rgba(255,255,255,0.75);
+      box-shadow: 0 0 12px rgba(255,255,255,0.8);
     }
 
     .rainbow {
       position: absolute;
-      top: calc(49vh + 34px);
+      top: calc(52vh + 42px);
       left: 50%;
-      width: 110px;
-      height: 115px;
+      width: 145px;
+      height: 170px;
       transform: translateX(-50%);
       opacity: 0;
-      animation: fadeIn 3.8s ease forwards 2.4s;
+      animation: fadeIn 4s ease forwards 2.2s;
     }
 
     .ray {
       position: absolute;
       top: 0;
       left: 50%;
-      width: 5px;
-      height: 96px;
-      border-radius: 999px;
+      width: 1px;
+      height: 145px;
       transform-origin: top center;
-      filter: blur(0.4px) drop-shadow(0 0 9px currentColor);
-      opacity: 0.82;
-      animation: rayBreathe 6.5s ease-in-out infinite;
+      background: currentColor;
+      border-radius: 999px;
+      opacity: 0.78;
+      box-shadow:
+        0 0 4px currentColor,
+        0 0 11px currentColor,
+        0 0 20px rgba(255,255,255,0.10);
+      animation: rayBreathe 7s ease-in-out infinite;
     }
 
-    .ray:nth-child(1) { color: #ff2020; background: currentColor; transform: translateX(-50%) rotate(13deg); }
-    .ray:nth-child(2) { color: #ff8a00; background: currentColor; transform: translateX(-50%) rotate(8deg); }
-    .ray:nth-child(3) { color: #ffe900; background: currentColor; transform: translateX(-50%) rotate(4deg); }
-    .ray:nth-child(4) { color: #22ff5c; background: currentColor; transform: translateX(-50%) rotate(0deg); }
-    .ray:nth-child(5) { color: #00e8ff; background: currentColor; transform: translateX(-50%) rotate(-4deg); }
-    .ray:nth-child(6) { color: #2f73ff; background: currentColor; transform: translateX(-50%) rotate(-8deg); }
-    .ray:nth-child(7) { color: #b04dff; background: currentColor; transform: translateX(-50%) rotate(-13deg); }
+    .ray:nth-child(1) { color: #ff3030; transform: translateX(-50%) rotate(16deg); }
+    .ray:nth-child(2) { color: #ff9a18; transform: translateX(-50%) rotate(10.5deg); }
+    .ray:nth-child(3) { color: #ffe84a; transform: translateX(-50%) rotate(5.2deg); }
+    .ray:nth-child(4) { color: #44ff73; transform: translateX(-50%) rotate(0deg); }
+    .ray:nth-child(5) { color: #20e9ff; transform: translateX(-50%) rotate(-5.2deg); }
+    .ray:nth-child(6) { color: #4b7cff; transform: translateX(-50%) rotate(-10.5deg); }
+    .ray:nth-child(7) { color: #b45cff; transform: translateX(-50%) rotate(-16deg); }
 
     .enter {
       position: absolute;
-      bottom: 25vh;
+      bottom: 17vh;
       left: 50%;
       transform: translateX(-50%);
       font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
       font-size: 11px;
-      letter-spacing: 0.22em;
+      letter-spacing: 0.24em;
       opacity: 0;
       animation: fadeIn 3s ease forwards 5.8s;
     }
@@ -133,41 +149,38 @@
     }
 
     @keyframes axisBreathe {
-      0%, 100% { opacity: 0.72; }
+      0%, 100% { opacity: 0.64; }
       50% { opacity: 1; }
     }
 
     @keyframes rayBreathe {
       0%, 100% {
-        opacity: 0.58;
-        height: 82px;
+        opacity: 0.45;
+        height: 120px;
       }
       50% {
-        opacity: 0.95;
-        height: 112px;
+        opacity: 0.92;
+        height: 160px;
       }
     }
 
     @media (max-width: 700px) {
       .title {
-        top: 32vh;
+        top: 36vh;
         font-size: 34px;
       }
 
-      .axis {
-        height: 52vh;
-      }
-
       .prism {
-        top: 48vh;
+        top: 51vh;
       }
 
       .rainbow {
-        top: calc(48vh + 34px);
+        top: calc(51vh + 42px);
+        width: 120px;
       }
 
       .enter {
-        bottom: 22vh;
+        bottom: 18vh;
       }
     }
   </style>
