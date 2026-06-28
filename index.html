@@ -6,19 +6,26 @@
   <title>Human OS</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: radial-gradient(circle at center, #07152d 0%, #020612 55%, #000 100%);
+      background: #12035c;
+      color: #fff;
       font-family: "Times New Roman", "Yu Mincho", "Hiragino Mincho ProN", serif;
-      color: white;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(255,255,255,0.08), transparent 23%),
+        radial-gradient(circle at 50% 72%, rgba(120,90,255,0.18), transparent 28%),
+        linear-gradient(180deg, #17056f 0%, #110252 58%, #080120 100%);
+      pointer-events: none;
     }
 
     .stage {
@@ -26,94 +33,98 @@
       width: 100vw;
       height: 100vh;
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
     }
 
     .title {
       position: absolute;
-      top: 9vh;
-      width: 100%;
-      text-align: center;
-      letter-spacing: 0.16em;
-      font-size: clamp(28px, 5vw, 68px);
+      top: 34vh;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: clamp(30px, 4vw, 58px);
       font-weight: 400;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
       opacity: 0;
-      animation: fadeIn 3s ease forwards 1.2s;
+      animation: fadeIn 3.6s ease forwards 3.2s;
     }
 
-    .subtitle {
+    .axis {
       position: absolute;
-      top: calc(9vh + 86px);
-      width: 100%;
-      text-align: center;
-      font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
-      font-size: clamp(12px, 1.5vw, 18px);
-      letter-spacing: 0.22em;
+      top: 4vh;
+      left: 50%;
+      width: 1px;
+      height: 55vh;
+      background: linear-gradient(
+        180deg,
+        transparent 0%,
+        rgba(255,255,255,0.25) 8%,
+        rgba(255,255,255,0.95) 48%,
+        rgba(255,255,255,0.62) 100%
+      );
+      filter: drop-shadow(0 0 8px rgba(255,255,255,0.8));
       opacity: 0;
-      animation: fadeIn 3s ease forwards 2.4s;
-    }
-
-    .light-line {
-      position: absolute;
-      width: 44vw;
-      max-width: 520px;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, white, transparent);
-      filter: drop-shadow(0 0 12px rgba(255,255,255,0.9));
-      animation: breathe 5s ease-in-out infinite;
+      animation: fadeIn 3s ease forwards 0.6s, axisBreathe 6s ease-in-out infinite 3s;
     }
 
     .prism {
       position: absolute;
+      top: 49vh;
+      left: 50%;
       width: 0;
       height: 0;
-      border-left: 42px solid transparent;
-      border-right: 42px solid transparent;
-      border-bottom: 72px solid rgba(255,255,255,0.12);
-      transform: translateY(64px);
-      filter: drop-shadow(0 0 18px rgba(255,255,255,0.35));
+      transform: translateX(-50%);
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-bottom: 34px solid rgba(255,255,255,0.34);
+      filter: drop-shadow(0 0 10px rgba(255,255,255,0.55));
       opacity: 0;
-      animation: fadeIn 3s ease forwards 3.2s;
+      animation: fadeIn 3s ease forwards 1.8s;
     }
 
     .rainbow {
       position: absolute;
-      width: min(70vw, 760px);
-      height: 260px;
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      transform: translateY(170px);
+      top: calc(49vh + 34px);
+      left: 50%;
+      width: 110px;
+      height: 115px;
+      transform: translateX(-50%);
       opacity: 0;
-      animation: fadeIn 4s ease forwards 4.2s;
+      animation: fadeIn 3.8s ease forwards 2.4s;
     }
 
     .ray {
-      width: 2px;
-      height: 220px;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 5px;
+      height: 96px;
       border-radius: 999px;
       transform-origin: top center;
-      filter: blur(0.3px) drop-shadow(0 0 10px currentColor);
-      animation: rayPulse 6s ease-in-out infinite;
+      filter: blur(0.4px) drop-shadow(0 0 9px currentColor);
+      opacity: 0.82;
+      animation: rayBreathe 6.5s ease-in-out infinite;
     }
 
-    .ray:nth-child(1) { color: #ff2b2b; background: currentColor; transform: rotate(28deg); }
-    .ray:nth-child(2) { color: #ff8a00; background: currentColor; transform: rotate(18deg); }
-    .ray:nth-child(3) { color: #ffe600; background: currentColor; transform: rotate(8deg); }
-    .ray:nth-child(4) { color: #4dff4d; background: currentColor; transform: rotate(0deg); }
-    .ray:nth-child(5) { color: #00d5ff; background: currentColor; transform: rotate(-8deg); }
-    .ray:nth-child(6) { color: #3478ff; background: currentColor; transform: rotate(-18deg); }
-    .ray:nth-child(7) { color: #b94dff; background: currentColor; transform: rotate(-28deg); }
+    .ray:nth-child(1) { color: #ff2020; background: currentColor; transform: translateX(-50%) rotate(13deg); }
+    .ray:nth-child(2) { color: #ff8a00; background: currentColor; transform: translateX(-50%) rotate(8deg); }
+    .ray:nth-child(3) { color: #ffe900; background: currentColor; transform: translateX(-50%) rotate(4deg); }
+    .ray:nth-child(4) { color: #22ff5c; background: currentColor; transform: translateX(-50%) rotate(0deg); }
+    .ray:nth-child(5) { color: #00e8ff; background: currentColor; transform: translateX(-50%) rotate(-4deg); }
+    .ray:nth-child(6) { color: #2f73ff; background: currentColor; transform: translateX(-50%) rotate(-8deg); }
+    .ray:nth-child(7) { color: #b04dff; background: currentColor; transform: translateX(-50%) rotate(-13deg); }
 
     .enter {
       position: absolute;
-      bottom: 9vh;
+      bottom: 25vh;
+      left: 50%;
+      transform: translateX(-50%);
       font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
-      font-size: 12px;
-      letter-spacing: 0.28em;
+      font-size: 11px;
+      letter-spacing: 0.22em;
       opacity: 0;
-      animation: fadeIn 3s ease forwards 7s;
+      animation: fadeIn 3s ease forwards 5.8s;
     }
 
     @keyframes fadeIn {
@@ -121,25 +132,42 @@
       to { opacity: 1; }
     }
 
-    @keyframes breathe {
-      0%, 100% {
-        opacity: 0.55;
-        transform: scaleX(0.96);
-      }
-      50% {
-        opacity: 1;
-        transform: scaleX(1.04);
-      }
+    @keyframes axisBreathe {
+      0%, 100% { opacity: 0.72; }
+      50% { opacity: 1; }
     }
 
-    @keyframes rayPulse {
+    @keyframes rayBreathe {
       0%, 100% {
-        opacity: 0.45;
-        height: 180px;
+        opacity: 0.58;
+        height: 82px;
       }
       50% {
         opacity: 0.95;
-        height: 240px;
+        height: 112px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .title {
+        top: 32vh;
+        font-size: 34px;
+      }
+
+      .axis {
+        height: 52vh;
+      }
+
+      .prism {
+        top: 48vh;
+      }
+
+      .rainbow {
+        top: calc(48vh + 34px);
+      }
+
+      .enter {
+        bottom: 22vh;
       }
     }
   </style>
@@ -147,10 +175,10 @@
 
 <body>
   <main class="stage">
-    <h1 class="title">HUMAN OS</h1>
-    <div class="subtitle">観察から、すべては始まる</div>
+    <div class="axis"></div>
 
-    <div class="light-line"></div>
+    <h1 class="title">HUMAN OS</h1>
+
     <div class="prism"></div>
 
     <div class="rainbow">
