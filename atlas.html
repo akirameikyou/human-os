@@ -172,13 +172,24 @@ gltfLoader.setDRACOLoader(dracoLoader);
 gltfLoader.load(
   'models/skeleton.glb',
   (gltf)=>{
-    gltf.scene.scale.set(1,1,1);
-    gltf.scene.rotation.set(0,0,0);
-    gltf.scene.position.set(0,0,0);
+    // ==== 位置合わせ・見ながら微調整できる3つのつまみ ====
+    const FIT_HEIGHT = 6.0;   // モデルを素体のこの縦幅に合わせる（大きく/小さく）
+    const FIT_Y      = -0.3;  // 縦の位置オフセット（＋で上へ / −で下へ）
+    const FIT_ROT_Y  = 0;     // 向きが逆なら Math.PI、横向きなら Math.PI/2 など
+
+    // 実寸を測って自動スケール＆軸へセンタリング
+    const box=new THREE.Box3().setFromObject(gltf.scene);
+    const size=new THREE.Vector3(); box.getSize(size);
+    const center=new THREE.Vector3(); box.getCenter(center);
+    const s=FIT_HEIGHT/(size.y||1);
+    gltf.scene.scale.setScalar(s);
+    gltf.scene.rotation.set(0,FIT_ROT_Y,0);
+    gltf.scene.position.set(-center.x*s, -center.y*s + FIT_Y, -center.z*s);
 
     groups.model.add(gltf.scene);
 
     console.log('Skeleton Loaded');
+    console.log('model native size =', size.toArray().map(v=>+v.toFixed(3)));
   },
   undefined,
   (err)=>{
