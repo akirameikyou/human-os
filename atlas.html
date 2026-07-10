@@ -125,6 +125,7 @@ input[type=range]{width:100%;accent-color:#c9b6ff}
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
 /* ---- 簡易パスワード錠（厳密なアクセス制限ではない・ソースから確認可） ---- */
 const ATLAS_KEY="chikura";
@@ -159,18 +160,30 @@ function reg(m){ m.clippingPlanes=[clipPlane]; materials.push(m); return m; }
 const groups={ body:new THREE.Group(), skeleton:new THREE.Group(), organ:new THREE.Group(), chakra:new THREE.Group(), model:new THREE.Group() };
 Object.values(groups).forEach(g=>scene.add(g));
 
-/* ---- GLTFLoader: models/skeleton.glb を groups.model へ（位置合わせは後・初期値のまま）---- */
-new GLTFLoader().load(
+/* ---- GLTFLoader + DRACOLoader: models/skeleton.glb を groups.model へ（位置合わせは後・初期値のまま）---- */
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath(
+  'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/'
+);
+
+const gltfLoader = new GLTFLoader();
+gltfLoader.setDRACOLoader(dracoLoader);
+
+gltfLoader.load(
   'models/skeleton.glb',
   (gltf)=>{
     gltf.scene.scale.set(1,1,1);
     gltf.scene.rotation.set(0,0,0);
     gltf.scene.position.set(0,0,0);
+
     groups.model.add(gltf.scene);
-    console.log("Skeleton Loaded");
+
+    console.log('Skeleton Loaded');
   },
   undefined,
-  (err)=>{ console.error("Skeleton load error:", err); }
+  (err)=>{
+    console.error('Skeleton load error:', err);
+  }
 );
 
 /* central axis (中心軸=天地を貫く垂線) */
