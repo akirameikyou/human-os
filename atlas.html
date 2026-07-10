@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow, noarchive" />
+<title>Human OS — Atlas 3D</title>
+<!--
+  Human OS Atlas (Reference) — 3D research prototype v2
+  追加: 右側 Focus Panel（History OS の焦点パネル文法）。チャクラをクリック／断面で走査 → 右に情報。
+  情報の「意味・手がかり・ケース」は『チャクラその生命の原理』(利用者の本文)から引用＝実践者の観察の種別。
+  身体は簡易素体。実モデル(Z-Anatomy/BodyParts3D)の差し替えは GLTFLoader で可能な"スロット"を用意（下記コメント）。
+  掟: 観たものを表現・記録する。真偽は証明しない。既存 Human OS ファイルは書き換えていない。
+-->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:#050018;color:#f4f1ff;font-family:"Yu Mincho","Hiragino Mincho ProN","Times New Roman",serif;overflow:hidden}
+#scene{position:fixed;inset:0;z-index:1}
+.top{position:fixed;top:0;left:0;right:0;z-index:10;padding:14px 22px;background:linear-gradient(180deg,rgba(5,0,24,.92),rgba(5,0,24,0));pointer-events:none}
+.top .k{font-family:"Yu Gothic","Hiragino Sans",sans-serif;font-size:11px;letter-spacing:.22em;color:rgba(244,241,255,.5)}
+.top h1{font-size:20px;font-weight:400;letter-spacing:.1em;margin-top:5px}
+.top .law{font-size:11.5px;color:rgba(201,182,255,.85);margin-top:5px}
+
+.panel{position:fixed;top:88px;z-index:10;border:1px solid rgba(244,241,255,.14);background:rgba(9,0,40,.6);backdrop-filter:blur(9px);padding:16px;max-height:calc(100% - 118px);overflow:auto}
+.left{left:20px;width:250px}
+.right{right:20px;width:330px}
+.panel h3{font-family:"Yu Gothic",sans-serif;font-size:11px;letter-spacing:.16em;color:rgba(244,241,255,.5);margin:0 0 10px;font-weight:400}
+.panel h3.mt{margin-top:20px}
+
+.lbtn{display:block;width:100%;text-align:left;margin-bottom:7px;padding:8px 10px;background:transparent;border:1px solid rgba(244,241,255,.12);color:rgba(244,241,255,.82);cursor:pointer;font:inherit}
+.lbtn.on{border-color:currentColor}
+.lbtn .nm{display:flex;align-items:center;gap:8px;font-size:13px}
+.lbtn .dot{width:10px;height:10px;border-radius:50%;background:currentColor}
+.lbtn .meta{display:block;margin-top:4px;font-family:"Yu Gothic",sans-serif;font-size:10px;color:rgba(244,241,255,.42)}
+.badge{font-family:"Yu Gothic",sans-serif;font-size:9px;letter-spacing:.06em;padding:1px 5px;border:1px solid currentColor;margin-right:5px}
+.views{display:flex;gap:6px;flex-wrap:wrap}
+.views button{flex:1;min-width:48px;font-family:"Yu Gothic",sans-serif;font-size:11px;padding:6px 4px;background:transparent;border:1px solid rgba(244,241,255,.14);color:rgba(244,241,255,.75);cursor:pointer}
+.views button:hover{border-color:#c9b6ff;color:#fff}
+.rowlab{font-family:"Yu Gothic",sans-serif;font-size:11px;color:rgba(244,241,255,.55);margin:12px 0 6px;display:flex;justify-content:space-between}
+.rowlab span{color:#c9b6ff}
+input[type=range]{width:100%;accent-color:#c9b6ff}
+.chk{display:flex;align-items:center;gap:8px;font-family:"Yu Gothic",sans-serif;font-size:12px;color:rgba(244,241,255,.75);cursor:pointer;margin-top:6px}
+
+/* focus panel */
+.f-kick{font-family:"Yu Gothic",sans-serif;font-size:10px;letter-spacing:.2em;color:rgba(244,241,255,.5)}
+.f-title{display:flex;align-items:center;gap:10px;font-size:22px;letter-spacing:.06em;margin:8px 0 3px}
+.f-title .fdot{width:16px;height:16px;border-radius:50%;box-shadow:0 0 12px currentColor;background:currentColor}
+.f-sub{font-size:12px;color:rgba(244,241,255,.5);margin-bottom:16px}
+.f-sec{margin-bottom:15px}
+.f-sec h5{font-family:"Yu Gothic",sans-serif;font-size:10.5px;letter-spacing:.12em;color:#c9b6ff;margin-bottom:6px}
+.f-sec .body{font-size:13px;line-height:1.85;color:rgba(244,241,255,.86)}
+.f-sec .src{font-family:"Yu Gothic",sans-serif;font-size:10px;color:rgba(244,241,255,.4);margin-top:4px}
+.f-sec ul{padding-left:1.05em;font-size:12.5px;line-height:1.7;color:rgba(244,241,255,.78)}
+.tier{font-family:"Yu Gothic",sans-serif;font-size:9px;padding:1px 5px;border:1px solid;margin-left:6px;vertical-align:1px}
+.tier.k{color:#8fd0c8;border-color:#8fd0c8}   /* 解剖 */
+.tier.m{color:#a9b6ff;border-color:#a9b6ff}   /* モデル */
+.tier.d{color:#c9a6ff;border-color:#c9a6ff}   /* 伝統・実感 */
+.f-meaning{border-left:2px solid #c9b6ff;padding-left:12px;font-size:13.5px;line-height:1.9}
+.f-note{margin-top:14px;padding-top:12px;border-top:1px solid rgba(244,241,255,.12);font-family:"Yu Gothic",sans-serif;font-size:10.5px;color:rgba(244,241,255,.45);line-height:1.7}
+
+.hint{position:fixed;bottom:16px;left:20px;z-index:10;font-family:"Yu Gothic",sans-serif;font-size:11px;color:rgba(244,241,255,.45);line-height:1.8}
+.hint b{color:#c9b6ff;font-weight:400}
+
+/* LOCK (簡易パスワード錠 — 厳密なアクセス制限ではない) */
+.lock{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(circle at 50% 38%,rgba(120,100,255,.12),transparent 30%),linear-gradient(180deg,#090032,#02000d)}
+.lock.hidden{display:none}
+.lock-box{width:min(430px,100%);border:1px solid rgba(244,241,255,.18);padding:40px 32px;text-align:center;background:rgba(255,255,255,.035);box-shadow:0 0 80px rgba(120,100,255,.08)}
+.lock-box h1{font-size:24px;font-weight:400;letter-spacing:.16em;margin-bottom:10px}
+.lock-box p{font-size:13px;color:rgba(244,241,255,.6);margin-bottom:24px;line-height:1.7}
+.lock-box input{width:100%;padding:13px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);color:#fff;text-align:center;letter-spacing:.18em;margin-bottom:16px}
+.lock-box button{padding:11px 26px;border:1px solid rgba(255,255,255,.24);background:transparent;color:#fff;letter-spacing:.16em;cursor:pointer;font:inherit}
+.lock-box .err{color:#ffb6b6;font-size:12px;margin-top:14px;min-height:16px}
+</style>
+</head>
+<body>
+
+<div class="lock" id="lock">
+  <div class="lock-box">
+    <h1>ATLAS</h1>
+    <p>チクラカムワザ受講者用の観察補助ページ（3Dアトラス）。<br>※簡易錠です。ソースからは確認できます。</p>
+    <input id="password" type="password" placeholder="PASSWORD" autocomplete="off" />
+    <button id="enterBtn">ENTER</button>
+    <div class="err" id="lockErr"></div>
+  </div>
+</div>
+
+<div class="top">
+  <div class="k">HUMAN OS INSTITUTE / ATLAS — 3D 見本 v2</div>
+  <h1>整った状態の、立体アトラス。</h1>
+  <div class="law">掟：観たものを表現・記録する。真偽は証明しない。／ 身体は簡易素体（実解剖モデルに差し替え可）。</div>
+</div>
+
+<div id="scene"></div>
+
+<!-- LEFT: layers + controls -->
+<div class="panel left">
+  <h3>レイヤー（種別を負う）</h3>
+  <div id="layerList"></div>
+  <h3 class="mt">視点</h3>
+  <div class="views">
+    <button data-v="front">前面</button><button data-v="side">側面</button>
+    <button data-v="back">背面</button><button data-v="top">上から</button><button data-v="reset">戻す</button>
+  </div>
+  <h3 class="mt">水平断面（CT）</h3>
+  <label class="chk"><input type="checkbox" id="clipOn" /> 断面で切る（上から覗く）</label>
+  <div class="rowlab"><span id="clipLab">胸のあたり</span><span id="clipZ"></span></div>
+  <input type="range" id="clip" min="-320" max="270" value="60" />
+</div>
+
+<!-- RIGHT: focus panel -->
+<div class="panel right" id="focus"></div>
+
+<div class="hint"><b>ドラッグ</b>＝回転（背面まで）／<b>ホイール</b>＝寄る引く／<b>チャクラをクリック</b>＝右に情報／<b>断面バー</b>＝その高さを読む</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+// 実モデル差し替え用スロット（現状は未使用。model.glb を用意すれば下記で読める）:
+// import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+// new GLTFLoader().load('./model.glb', g=>{ g.scene.traverse(o=>{if(o.material)reg(o.material)}); groups.body.add(g.scene); });
+
+/* ---- 簡易パスワード錠（厳密なアクセス制限ではない・ソースから確認可） ---- */
+const ATLAS_KEY="chikura";
+{ const lock=document.getElementById('lock'), pw=document.getElementById('password');
+  function tryUnlock(){ if(pw.value===ATLAS_KEY){ lock.classList.add('hidden'); dispatchEvent(new Event('resize')); }
+    else { document.getElementById('lockErr').textContent='パスワードが違います。'; } }
+  document.getElementById('enterBtn').addEventListener('click',tryUnlock);
+  pw.addEventListener('keydown',e=>{ if(e.key==='Enter') tryUnlock(); });
+  pw.focus();
+}
+
+const mount=document.getElementById('scene');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.localClippingEnabled=true;
+mount.appendChild(renderer.domElement);
+
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,0.1,100);
+camera.position.set(0,0.4,9);
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true; controls.dampingFactor=0.08; controls.target.set(0,0.2,0);
+
+scene.add(new THREE.AmbientLight(0x8a7fff,0.7));
+const dir=new THREE.DirectionalLight(0xffffff,0.5); dir.position.set(3,5,6); scene.add(dir);
+
+const clipPlane=new THREE.Plane(new THREE.Vector3(0,-1,0),100);
+const materials=[];
+function reg(m){ m.clippingPlanes=[clipPlane]; materials.push(m); return m; }
+
+const groups={ body:new THREE.Group(), skeleton:new THREE.Group(), organ:new THREE.Group(), chakra:new THREE.Group() };
+Object.values(groups).forEach(g=>scene.add(g));
+
+/* central axis (中心軸=天地を貫く垂線) */
+{ const m=reg(new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.4}));
+  const line=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,5.6,8),m); groups.body.add(line); }
+
+/* simplified translucent body — depthWrite:false なので内側の光を隠さない（隠れバグ修正） */
+function bodyMat(){ return reg(new THREE.MeshStandardMaterial({color:0x9f95d6,transparent:true,opacity:0.1,roughness:.7,side:THREE.DoubleSide,depthWrite:false})); }
+function part(geo,y,x=0,rot=0){ const me=new THREE.Mesh(geo,bodyMat()); me.position.set(x,y,0); if(rot)me.rotation.z=rot; groups.body.add(me); }
+part(new THREE.SphereGeometry(0.5,24,20),2.2);
+part(new THREE.CapsuleGeometry(0.32,0.5,8,16),1.55);
+part(new THREE.CapsuleGeometry(0.9,1.9,10,20),0.15);
+part(new THREE.CapsuleGeometry(0.19,1.9,6,12),-0.1,-1.0,0.12);
+part(new THREE.CapsuleGeometry(0.19,1.9,6,12),-0.1,1.0,-0.12);
+part(new THREE.CapsuleGeometry(0.27,2.0,8,14),-2.35,-0.42);
+part(new THREE.CapsuleGeometry(0.27,2.0,8,14),-2.35,0.42);
+
+const clickable=[]; // {mesh, group} — 全レイヤー横断のクリック対象
+
+/* skeleton (クリック可能) */
+{ const sm=reg(new THREE.MeshStandardMaterial({color:0xdfe4ee,roughness:.5}));
+  function bone(mesh,id){ mesh.userData.id=id; groups.skeleton.add(mesh); clickable.push({mesh,group:'skeleton'}); }
+  const spine=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.075,3.4,10),sm); spine.position.y=0.1; bone(spine,'spine');
+  const pel=new THREE.Mesh(new THREE.TorusGeometry(0.4,0.055,8,20),sm); pel.position.y=-1.5; pel.rotation.x=Math.PI/2; bone(pel,'pelvis');
+  const rib=new THREE.Mesh(new THREE.TorusGeometry(0.48,0.045,8,20),sm); rib.position.y=0.5; rib.rotation.x=Math.PI/2; rib.scale.z=0.6; bone(rib,'rib'); }
+
+/* organs (クリック可能・depthWrite:false) */
+const orgMat=()=>reg(new THREE.MeshStandardMaterial({color:0x8fd0c8,transparent:true,opacity:.6,roughness:.6,depthWrite:false}));
+function organ(y,r,id,x=0){ const o=new THREE.Mesh(new THREE.SphereGeometry(r,16,12),orgMat()); o.position.set(x,y,0.05); o.userData.id=id; groups.organ.add(o); clickable.push({mesh:o,group:'organ'}); }
+organ(0.55,0.3,'heartlung',-0.16); organ(0.55,0.26,'heartlung',0.2); organ(-0.05,0.3,'digest',0.04); organ(-0.7,0.36,'intestine'); organ(2.15,0.3,'brain');
+
+/* chakra volumes (tightened: smaller/less opaque = 澄んだ理想形) */
+const chakras=[
+  {id:'earth',y:-3.05,color:0x9b6bff,r:0.42},
+  {id:'c1',y:-1.55,color:0xbd3333,r:0.44},
+  {id:'c2',y:-0.85,color:0xc77723,r:0.42},
+  {id:'c3',y:-0.05,color:0xc9bd45,r:0.44},
+  {id:'c4',y:0.6,color:0x3fbd62,r:0.46},
+  {id:'c5',y:1.5,color:0x31b7c8,r:0.36},
+  {id:'c6',y:2.05,color:0x5f7dff,r:0.32},
+  {id:'c7',y:2.75,color:0xb48cff,r:0.36},
+];
+const chakraMeshes=[];
+chakras.forEach(c=>{
+  const m=reg(new THREE.MeshBasicMaterial({color:c.color,transparent:true,opacity:.4,blending:THREE.AdditiveBlending,depthWrite:false}));
+  const mesh=new THREE.Mesh(new THREE.SphereGeometry(c.r,24,20),m);
+  mesh.position.set(0,c.y,0); mesh.userData.id=c.id; groups.chakra.add(mesh); chakraMeshes.push(mesh); clickable.push({mesh,group:'chakra'});
+  const core=new THREE.Mesh(new THREE.SphereGeometry(c.r*0.3,14,12),
+    reg(new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false})));
+  core.position.copy(mesh.position); groups.chakra.add(core);
+});
+
+/* ---- FOCUS content: 意味/手がかり/ケース は『チャクラその生命の原理』(利用者本文)より引用＝実践者の観察 ---- */
+const info={
+  earth:{name:'アーススター / 接地・中心軸',color:'#9b6bff',
+    meaning:'第一チャクラの前に、体軸を確認する。体軸とは「天地を貫く垂線」。糸におもりを垂らせば地球の中心へ向かう、その垂線を、頭の天辺から脚元まで感じる。',
+    hint:'つま先立ちして踵まで着地し、足裏の体重が不均等でないかを観る。左右が合掌するように真っ直ぐ上がれば中心。この中心軸が、状態を読む基軸。',
+    body:['足裏・接地感','体軸（正中）','重力線'],nerve:['前庭感覚','固有受容感覚'],organ:['下肢','骨格支持'],emotion:['接地','安心','地球とのつながり'],
+    caseText:'現代人は頭に意識が強く、下腹部を感じることすら難しい。「感じられない自分」を知ることも、現状を知る一歩。' },
+  c1:{name:'第一チャクラ / 根',color:'#bd3333',
+    meaning:'「行動の源力」であり「安心安全」の領域。行動するための最たるエネルギー。安全と思えなければ行動できない——ゆえに安心安全が要。',
+    hint:'位置が右前へズレる＝「みんなのために頑張りすぎた」。左前＝「してもらいすぎた」。出し過ぎも貰い過ぎも過剰。中心が最も力の出る位置。体温を司る。',
+    body:['骨盤底','会陰・尾骨','体温・基礎代謝'],nerve:['仙骨神経叢','自律神経の基礎反応'],organ:['直腸・排泄','骨・下肢','副腎との関連を検討'],emotion:['安心安全','恐怖反応','居場所','生存感覚'],
+    caseText:'自然農の農家は根が強い——集中しただけで汗をかき、隣の人まで熱くなる方も。弱ると殆ど見えず、形が変形する。' },
+  c2:{name:'第二チャクラ / セイクラル',color:'#c77723',
+    meaning:'「自己受容」——自分のことが好きかどうか。無条件に、女性なら女性、男性なら男性である自分を含めて、まるっと肯定できるか。',
+    hint:'前に出ていると「役に立てる/認められる自分なら好き」＝条件付きの自分好き。基本色はオレンジ。好きなことをすることで本領を発揮する。',
+    body:['下腹部','骨盤内臓','生殖器'],nerve:['骨盤神経叢','腸管神経系'],organ:['小腸・大腸','子宮・卵巣・精巣','腸内フローラ'],emotion:['親密性','境界感覚','喜び','羞恥'],
+    caseText:'色が薄くなりがち（他人と比べる現代人）。親の期待や「男/女はこうあるべき」に沿えない自分を否定していることも。' },
+  c3:{name:'第三チャクラ / 太陽神経叢',color:'#c9bd45',
+    meaning:'「感情の中枢」。太陽神経叢はミゾオチ付近。横隔膜が呼吸をつくり、呼吸は感情と密接に繋がる。感情に良し悪しは無い（味に例える）。',
+    hint:'前に出すぎ＝他人の感情を氣にしすぎ。後ろより＝自分の感情ばかり優先。本来の色は黄。「その人の感情はその人のもの、あなたの感情はあなたのもの」。',
+    body:['みぞおち','丹田','横隔膜・体幹'],nerve:['太陽神経叢','腹腔神経叢','交感神経'],organ:['胃','膵臓','肝臓','胆嚢','脾臓'],emotion:['意志','怒り','行動力','緊張'],
+    caseText:'薄く平板・ドーナツ状＝外面は繕うが、自分がどう感じているか分からなくなっているパターン。' },
+  c4:{name:'第四チャクラ / ハート（アナーハタ）',color:'#3fbd62',
+    meaning:'「愛」——自他の受容。愛の反対は嫌いではなく無関心。下三つと上三つをつなぐ中心。正直に・寛容に・ジャッジせず・忍耐強く観る。',
+    hint:'半数ほどに心象風景（森・草原）が現れる。緑が広がり美しい方が多い。背中側だけ切れ目＝愛の対象に自分だけが入っていない。',
+    body:['胸郭','心臓','肺','横隔膜','腕・手'],nerve:['迷走神経','心臓神経叢'],organ:['心臓','肺','胸腺','循環器'],emotion:['愛','共感','悲しみ','信頼','関係性'],
+    caseText:'四角い緑の枠＝「愛とはこうである」と実感より先に形を与えられた現れ（ある宗派の信徒だった方）。抱きしめると変化する。' },
+  c5:{name:'第五チャクラ / 喉（ヴィシュッダ）',color:'#31b7c8',
+    meaning:'「明確なコミュニケーション」——自己表現から自己実現へ。五元の「空」＝空っぽ・疎通していること。よく聞き、よく話す、の繰り返し。',
+    hint:'喉に塊や雲＝意見を飲み込む・曖昧にしてきた。整うと青空・青いクリスタル。正確に表現されれば現実化しやすい。曖昧はうやむやになる。',
+    body:['喉','声帯','顎','首','肩'],nerve:['頸神経叢','迷走神経の枝'],organ:['甲状腺','副甲状腺','咽頭・喉頭','気管'],emotion:['自己表現','沈黙','伝達','聴く力'],
+    caseText:'領域は「目より下〜胸より上」。インナートークはぐるぐる回るだけでは何もハッキリしない。' },
+  c6:{name:'第六チャクラ / 眉間（アージュニャー）',color:'#5f7dff',
+    meaning:'「叡智」——直観・洞察の総括。老子「太上下知有之」（最上の統治者は、いることを知られるだけ）。全チャクラの指揮者。',
+    hint:'整うと静寂が広がり、インナートークが遠のく。深いインディゴブルーのクリスタルや星空を感じる人が多い。下が整わないと本領が出ない。',
+    body:['頭部中心','眉間','眼','脳'],nerve:['視神経','三叉神経','中枢神経系'],organ:['松果体との象徴的関連','脳下垂体との関連を検討'],emotion:['洞察','直感','夢','内的映像'],
+    caseText:'「鼓腹撃壌」——民が為政者の存在すら意識せず平和に暮らす、それを最高の善政と喜んだ堯帝の逸話が、この静けさを言い当てる。' },
+  c7:{name:'第七チャクラ / 頭頂（サハスラーラ）',color:'#b48cff',
+    meaning:'「インスピレーションの入り口」——イン・スピリッツ（霊感・直観）。個を超えた大いなるものから来るので、自己超越の表現になる。王冠。',
+    hint:'回転する花のように、あるいは頭上に光の玉が浮かぶように観える。整わないと蓋をされたよう・ぼんやり。稀に、よくない繋がりがあり要注意。',
+    body:['頭頂上部','脳全体','神経系の統合'],nerve:['中枢神経系','脳波'],organ:['脳','内分泌系全体との統合的観察'],emotion:['統合','祈り','意味','超越'],
+    caseText:'頭上に水色の光が噴水状＝亡き父との繋がり（喉の色が頭上に）。愛情と、導いてもらう存在は分けるようお伝えした。' },
+};
+
+/* ---- parts (骨格・臓器): 解剖の概略＝参照レンズ ---- */
+const parts={
+  spine:{name:'脊椎（背骨）',color:'#dfe4ee',text:'中枢神経を守り、体を支える軸。内臓へ伸びる神経は背骨を通って分岐する——本文が「中心軸を基軸に観る」と言う、その解剖的な裏づけ。',rel:'中心軸・全チャクラ'},
+  pelvis:{name:'骨盤',color:'#dfe4ee',text:'上半身の重みを脚へ伝える土台。骨盤底は第一チャクラ（安心・接地）の座。',rel:'第一チャクラ'},
+  rib:{name:'胸郭・肋骨',color:'#dfe4ee',text:'心臓と肺を囲い守る籠。呼吸で広がり縮む。',rel:'第四チャクラ（胸）'},
+  heartlung:{name:'心臓・肺',color:'#8fd0c8',text:'循環と呼吸。拍動と呼吸のリズムが自律神経・感情と結ぶ。',rel:'第四チャクラ'},
+  digest:{name:'胃・肝・膵',color:'#8fd0c8',text:'消化・代謝の中枢。太陽神経叢がこの辺りに広がる。',rel:'第三チャクラ'},
+  intestine:{name:'小腸・大腸',color:'#8fd0c8',text:'吸収と腸管神経系。「腹で感じる」の座。',rel:'第二〜第三チャクラ'},
+  brain:{name:'脳',color:'#8fd0c8',text:'中枢神経の統合。',rel:'第六・第七チャクラ'},
+};
+
+/* ---- render focus ---- */
+const focusEl=document.getElementById('focus');
+function tierTag(t){ const c=t==='解剖'?'k':t==='モデル'?'m':'d'; return `<span class="tier ${c}">${t}</span>`; }
+function secList(title,items,tier){ if(!items||!items.length)return''; return `<div class="f-sec"><h5>${title}${tierTag(tier)}</h5><ul>${items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`; }
+function renderOverview(){
+  focusEl.innerHTML=`
+    <div class="f-kick">FOCUS / OVERVIEW</div>
+    <div class="f-title" style="color:#c9b6ff"><span class="fdot"></span>整った状態の Atlas</div>
+    <div class="f-sub">整った平均・理想の形。個々の実際は Journal 側で描く。</div>
+    <div class="f-sec"><div class="f-meaning">左のレイヤーで重ね、視点を変え、断面で上から覗く。<b style="color:#c9b6ff">チャクラをクリック</b>すると、ここにその情報が出ます。</div></div>
+    <div class="f-note">意味・手がかり・ケースは『チャクラその生命の原理』(本文)からの引用＝実践者の観察。身体・神経・臓器は参照レンズ（解剖／モデル）。<br>
+    ※実モデル差し替え：現状は簡易素体。Z-Anatomy / BodyParts3D 等の .glb を用意すれば GLTFLoader で差し替え可能（コード上にスロット有り）。ただし実モデルは数MBと重く、ライセンス(CC BY-SA=帰属・継承)の確認が要るため、ここでは素体のまま。</div>`;
+}
+function renderFocus(id){
+  const d=info[id]; if(!d){ renderOverview(); return; }
+  focusEl.innerHTML=`
+    <div class="f-kick">FOCUS / CHAKRA</div>
+    <div class="f-title" style="color:${d.color}"><span class="fdot"></span>${d.name}</div>
+    <div class="f-sub">クリック／断面走査で選択中</div>
+    <div class="f-sec"><h5>意味${tierTag('伝統・実感')}</h5><div class="f-meaning">${d.meaning}</div><div class="src">典拠：『チャクラその生命の原理』</div></div>
+    <div class="f-sec"><h5>観測の手がかり（第一・第二指標）${tierTag('伝統・実感')}</h5><div class="body">${d.hint}</div></div>
+    ${secList('身体 / Body',d.body,'解剖')}
+    ${secList('神経系 / Nervous',d.nerve,'モデル')}
+    ${secList('内臓・内分泌 / Organs',d.organ,'解剖')}
+    ${secList('感情・記憶 / Emotion',d.emotion,'伝統・実感')}
+    <div class="f-sec"><h5>ケース（出会った実例）${tierTag('伝統・実感')}</h5><div class="body">${d.caseText}</div><div class="src">典拠：『チャクラその生命の原理』</div></div>
+    <div class="f-note">身体・神経・臓器＝参照レンズ（近似）。医学的診断ではなく、種別を区別して並べた実験表示。真偽は証明しない。</div>`;
+}
+function renderPart(id){ const d=parts[id]; if(!d){ renderOverview(); return; }
+  focusEl.innerHTML=`
+    <div class="f-kick">FOCUS / PART</div>
+    <div class="f-title" style="color:${d.color}"><span class="fdot"></span>${d.name}</div>
+    <div class="f-sub">レイヤーの部位（クリックで選択中）</div>
+    <div class="f-sec"><h5>解説${tierTag('解剖')}</h5><div class="f-meaning">${d.text}</div></div>
+    <div class="f-sec"><h5>対応するチャクラ</h5><div class="body">${d.rel}</div></div>
+    <div class="f-note">解剖の概略＝参照レンズ。正確な形状・名称は実モデル(Z-Anatomy等)に差し替えた際に精緻化。真偽は証明しない。</div>`;
+}
+let current=null;
+function selectChakra(id){ current=id; renderFocus(id);
+  chakraMeshes.forEach(m=>{ const sel=m.userData.id===id; m.scale.setScalar(sel?1.28:1); m.material.opacity=sel?.6:.4; }); }
+function selectItem(id){
+  if(info[id]) selectChakra(id);
+  else if(parts[id]){ current=id; renderPart(id); chakraMeshes.forEach(m=>{ m.scale.setScalar(1); m.material.opacity=.4; }); }
+}
+
+/* ---- layers UI ---- */
+const layers=[
+  {id:'body',name:'素体（簡易）',kind:'図式',src:'schematic（写実ではない）',color:'#9f95d6'},
+  {id:'skeleton',name:'骨格',kind:'解剖',src:'Terminologia Anatomica',color:'#dfe4ee'},
+  {id:'organ',name:'臓器',kind:'解剖',src:'解剖学（概略）',color:'#8fd0c8'},
+  {id:'chakra',name:'チャクラ（立体）',kind:'伝統',src:'ヨーガ／本文',color:'#c9a6ff'},
+];
+const layerBox=document.getElementById('layerList');
+layers.forEach(L=>{ groups[L.id].visible=true;
+  const b=document.createElement('button'); b.className='lbtn on'; b.style.color=L.color;
+  b.innerHTML=`<span class="nm"><span class="dot"></span><span style="color:#f4f1ff">${L.name}</span></span>
+    <span class="meta"><span class="badge">${L.kind}</span>典拠：${L.src}</span>`;
+  b.onclick=()=>{ groups[L.id].visible=!groups[L.id].visible; b.classList.toggle('on',groups[L.id].visible); };
+  layerBox.appendChild(b); });
+
+/* ---- views ---- */
+const R=9;
+const viewPos={front:[0,0.4,R],side:[R,0.4,0],back:[0,0.4,-R],top:[0,R,0.001],reset:[0,0.4,R]};
+document.querySelectorAll('.views button').forEach(btn=>{ btn.onclick=()=>{ const p=viewPos[btn.dataset.v]; camera.position.set(...p); controls.target.set(0,0.2,0); }; });
+
+/* ---- clip ---- */
+const clipOn=document.getElementById('clipOn'),clip=document.getElementById('clip'),clipLab=document.getElementById('clipLab'),clipZ=document.getElementById('clipZ');
+function levelName(y){ if(y>2.4)return'頭頂';if(y>1.7)return'頭・眉間';if(y>1.1)return'喉・首';if(y>0.2)return'胸';if(y>-0.4)return'みぞおち';if(y>-1.2)return'臍下・腹';if(y>-2.6)return'骨盤・脚';return'アース（接地）'; }
+function nearChakra(y){ let best=null,bd=0.6; chakras.forEach(c=>{const dd=Math.abs(c.y-y); if(dd<bd){bd=dd;best=c;}}); return best?best.id:null; }
+function updateClip(){
+  const y=(+clip.value)/100;
+  clipPlane.constant=clipOn.checked?y:100;
+  clipLab.textContent=levelName(y); clipZ.textContent='y='+y.toFixed(2);
+  if(clipOn.checked){ const id=nearChakra(y); if(id&&id!==current) selectChakra(id); }
+}
+clipOn.onchange=()=>{ updateClip(); if(clipOn.checked){ camera.position.set(...viewPos.top); controls.target.set(0,0.2,0);} };
+clip.oninput=updateClip;
+
+/* ---- raycast click on chakra ---- */
+const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
+let downXY=null;
+renderer.domElement.addEventListener('pointerdown',e=>{ downXY=[e.clientX,e.clientY]; });
+renderer.domElement.addEventListener('pointerup',e=>{
+  if(!downXY) return; const moved=Math.hypot(e.clientX-downXY[0],e.clientY-downXY[1]); downXY=null;
+  if(moved>6) return; // drag, not click
+  ndc.x=(e.clientX/innerWidth)*2-1; ndc.y=-(e.clientY/innerHeight)*2+1;
+  ray.setFromCamera(ndc,camera);
+  const targets=clickable.filter(c=>groups[c.group].visible).map(c=>c.mesh);
+  const hits=ray.intersectObjects(targets,false);
+  if(hits.length) selectItem(hits[0].object.userData.id);
+});
+
+/* ---- init / loop ---- */
+addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
+renderOverview(); updateClip();
+(function animate(){ requestAnimationFrame(animate); controls.update(); groups.chakra.rotation.y+=0.0008; renderer.render(scene,camera); })();
+window.__ok=true;
+</script>
+</body>
+</html>
