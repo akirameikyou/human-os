@@ -124,9 +124,7 @@ input[type=range]{width:100%;accent-color:#c9b6ff}
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-// 実モデル差し替え用スロット（現状は未使用。model.glb を用意すれば下記で読める）:
-// import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-// new GLTFLoader().load('./model.glb', g=>{ g.scene.traverse(o=>{if(o.material)reg(o.material)}); groups.body.add(g.scene); });
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 /* ---- 簡易パスワード錠（厳密なアクセス制限ではない・ソースから確認可） ---- */
 const ATLAS_KEY="chikura";
@@ -158,8 +156,22 @@ const clipPlane=new THREE.Plane(new THREE.Vector3(0,-1,0),100);
 const materials=[];
 function reg(m){ m.clippingPlanes=[clipPlane]; materials.push(m); return m; }
 
-const groups={ body:new THREE.Group(), skeleton:new THREE.Group(), organ:new THREE.Group(), chakra:new THREE.Group() };
+const groups={ body:new THREE.Group(), skeleton:new THREE.Group(), organ:new THREE.Group(), chakra:new THREE.Group(), model:new THREE.Group() };
 Object.values(groups).forEach(g=>scene.add(g));
+
+/* ---- GLTFLoader: models/skeleton.glb を groups.model へ（位置合わせは後・初期値のまま）---- */
+new GLTFLoader().load(
+  'models/skeleton.glb',
+  (gltf)=>{
+    gltf.scene.scale.set(1,1,1);
+    gltf.scene.rotation.set(0,0,0);
+    gltf.scene.position.set(0,0,0);
+    groups.model.add(gltf.scene);
+    console.log("Skeleton Loaded");
+  },
+  undefined,
+  (err)=>{ console.error("Skeleton load error:", err); }
+);
 
 /* central axis (中心軸=天地を貫く垂線) */
 { const m=reg(new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.4}));
