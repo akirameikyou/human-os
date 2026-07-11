@@ -370,6 +370,15 @@ layers.forEach(L=>{ groups[L.id].visible=true;
   b.onclick=()=>{ groups[L.id].visible=!groups[L.id].visible; b.classList.toggle('on',groups[L.id].visible); };
   layerBox.appendChild(b); });
 
+ /* 実骨格 全身 ⇄ 半分（矢状断）トグル */
+{ const b=document.createElement('button'); b.className='lbtn on'; b.style.color='#dfe4ee';
+  let full=true;
+  const label=()=>`<span class="nm"><span class="dot"></span><span style="color:#f4f1ff">実骨格：${full?'全身':'半分（矢状断）'}</span></span>`;
+  b.innerHTML=label();
+  b.onclick=()=>{ full=!full; if(skeletonMirror) skeletonMirror.visible=full; b.innerHTML=label(); };
+  layerBox.appendChild(b);
+}
+  
 /* ---- views ---- */
 const R=9;
 const viewPos={front:[0,0.4,R],side:[R,0.4,0],back:[0,0.4,-R],top:[0,R,0.001],reset:[0,0.4,R]};
