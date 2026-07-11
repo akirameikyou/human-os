@@ -165,12 +165,12 @@ gltfLoader.setDRACOLoader(dracoLoader);
 gltfLoader.load(
   'models/skeleton.glb',
   (gltf)=>{
-    // ==== 位置合わせ・見ながら微調整できる3つのつまみ ====
-    const FIT_HEIGHT = 6.6;   // モデルの縦幅（大きく/小さく）
-    const FIT_Y      = -0.3;  // 縦の位置（＋で上へ / −で下へ）
-    const FIT_ROT_Y  = 0;     // 向きが逆なら Math.PI、横向きなら Math.PI/2 や -Math.PI/2
+    // ==== 位置合わせ・見ながら微調整できる4つのつまみ ====
+    const FIT_HEIGHT = 6.6;   // 縦幅（大きく/小さく）
+    const FIT_X      = 0;     // 左右（−で左へ / ＋で右へ）※右にズレていたら -0.4 等
+    const FIT_Y      = -0.3;  // 上下（＋で上へ / −で下へ）
+    const FIT_ROT_Y  = 0;     // 向き（逆なら Math.PI、横向きなら Math.PI/2 や -Math.PI/2）
 
-    // 実寸を測り、幾何中心を原点へ寄せてから（左右ズレ防止）、pivotで拡大・配置・回転
     const box=new THREE.Box3().setFromObject(gltf.scene);
     const size=new THREE.Vector3(); box.getSize(size);
     const center=new THREE.Vector3(); box.getCenter(center);
@@ -180,16 +180,14 @@ gltfLoader.load(
     const s=FIT_HEIGHT/(size.y||1);
     pivot.scale.setScalar(s);
     pivot.rotation.set(0,FIT_ROT_Y,0);
-    pivot.position.set(0, FIT_Y, 0);
+    pivot.position.set(FIT_X, FIT_Y, 0);        // ← FIT_X を追加
     groups.model.add(pivot);
 
     console.log('Skeleton Loaded');
     console.log('model native size =', size.toArray().map(v=>+v.toFixed(3)));
   },
   undefined,
-  (err)=>{
-    console.error('Skeleton load error:', err);
-  }
+  (err)=>{ console.error('Skeleton load error:', err); }
 );
 
 /* central axis (中心軸=天地を貫く垂線) */
