@@ -167,7 +167,7 @@ gltfLoader.load(
   (gltf)=>{
     // ==== 位置合わせ・見ながら微調整できる4つのつまみ ====
     const FIT_HEIGHT = 6.6;   // 縦幅（大きく/小さく）
-    const FIT_X      = 0;     // 左右（−で左へ / ＋で右へ）※右にズレていたら -0.4 等
+    const FIT_X      = -0.4    // 左右（−で左へ / ＋で右へ）※右にズレていたら -0.4 等
     const FIT_Y      = -0.3;  // 上下（＋で上へ / −で下へ）
     const FIT_ROT_Y  = 0;     // 向き（逆なら Math.PI、横向きなら Math.PI/2 や -Math.PI/2）
 
