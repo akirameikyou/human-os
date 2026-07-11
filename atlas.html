@@ -5,13 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow, noarchive" />
 <title>Human OS — Atlas 3D</title>
-<!--
-  Human OS Atlas (Reference) — 3D research prototype v2
-  追加: 右側 Focus Panel（History OS の焦点パネル文法）。チャクラをクリック／断面で走査 → 右に情報。
-  情報の「意味・手がかり・ケース」は『チャクラその生命の原理』(利用者の本文)から引用＝実践者の観察の種別。
-  身体は簡易素体。実モデル(Z-Anatomy/BodyParts3D)の差し替えは GLTFLoader で可能な"スロット"を用意（下記コメント）。
-  掟: 観たものを表現・記録する。真偽は証明しない。既存 Human OS ファイルは書き換えていない。
--->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -53,9 +46,9 @@ input[type=range]{width:100%;accent-color:#c9b6ff}
 .f-sec .src{font-family:"Yu Gothic",sans-serif;font-size:10px;color:rgba(244,241,255,.4);margin-top:4px}
 .f-sec ul{padding-left:1.05em;font-size:12.5px;line-height:1.7;color:rgba(244,241,255,.78)}
 .tier{font-family:"Yu Gothic",sans-serif;font-size:9px;padding:1px 5px;border:1px solid;margin-left:6px;vertical-align:1px}
-.tier.k{color:#8fd0c8;border-color:#8fd0c8}   /* 解剖 */
-.tier.m{color:#a9b6ff;border-color:#a9b6ff}   /* モデル */
-.tier.d{color:#c9a6ff;border-color:#c9a6ff}   /* 伝統・実感 */
+.tier.k{color:#8fd0c8;border-color:#8fd0c8}
+.tier.m{color:#a9b6ff;border-color:#a9b6ff}
+.tier.d{color:#c9a6ff;border-color:#c9a6ff}
 .f-meaning{border-left:2px solid #c9b6ff;padding-left:12px;font-size:13.5px;line-height:1.9}
 .f-note{margin-top:14px;padding-top:12px;border-top:1px solid rgba(244,241,255,.12);font-family:"Yu Gothic",sans-serif;font-size:10.5px;color:rgba(244,241,255,.45);line-height:1.7}
 
@@ -160,7 +153,7 @@ function reg(m){ m.clippingPlanes=[clipPlane]; materials.push(m); return m; }
 const groups={ body:new THREE.Group(), skeleton:new THREE.Group(), organ:new THREE.Group(), chakra:new THREE.Group(), model:new THREE.Group() };
 Object.values(groups).forEach(g=>scene.add(g));
 
-/* ---- GLTFLoader + DRACOLoader: models/skeleton.glb を groups.model へ（位置合わせは後・初期値のまま）---- */
+/* ---- GLTFLoader + DRACOLoader: models/skeleton.glb を groups.model へ ---- */
 const dracoLoader = new DRACOLoader();
 dracoLoader.setDecoderPath(
   'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/'
@@ -173,20 +166,22 @@ gltfLoader.load(
   'models/skeleton.glb',
   (gltf)=>{
     // ==== 位置合わせ・見ながら微調整できる3つのつまみ ====
-    const FIT_HEIGHT = 6.0;   // モデルを素体のこの縦幅に合わせる（大きく/小さく）
-    const FIT_Y      = -0.3;  // 縦の位置オフセット（＋で上へ / −で下へ）
-    const FIT_ROT_Y  = 0;     // 向きが逆なら Math.PI、横向きなら Math.PI/2 など
+    const FIT_HEIGHT = 6.6;   // モデルの縦幅（大きく/小さく）
+    const FIT_Y      = -0.3;  // 縦の位置（＋で上へ / −で下へ）
+    const FIT_ROT_Y  = 0;     // 向きが逆なら Math.PI、横向きなら Math.PI/2 や -Math.PI/2
 
-    // 実寸を測って自動スケール＆軸へセンタリング
+    // 実寸を測り、幾何中心を原点へ寄せてから（左右ズレ防止）、pivotで拡大・配置・回転
     const box=new THREE.Box3().setFromObject(gltf.scene);
     const size=new THREE.Vector3(); box.getSize(size);
     const center=new THREE.Vector3(); box.getCenter(center);
+    gltf.scene.position.sub(center);            // 幾何中心を原点へ
+    const pivot=new THREE.Group();
+    pivot.add(gltf.scene);
     const s=FIT_HEIGHT/(size.y||1);
-    gltf.scene.scale.setScalar(s);
-    gltf.scene.rotation.set(0,FIT_ROT_Y,0);
-    gltf.scene.position.set(-center.x*s, -center.y*s + FIT_Y, -center.z*s);
-
-    groups.model.add(gltf.scene);
+    pivot.scale.setScalar(s);
+    pivot.rotation.set(0,FIT_ROT_Y,0);
+    pivot.position.set(0, FIT_Y, 0);
+    groups.model.add(pivot);
 
     console.log('Skeleton Loaded');
     console.log('model native size =', size.toArray().map(v=>+v.toFixed(3)));
@@ -201,7 +196,7 @@ gltfLoader.load(
 { const m=reg(new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.4}));
   const line=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,5.6,8),m); groups.body.add(line); }
 
-/* simplified translucent body — depthWrite:false なので内側の光を隠さない（隠れバグ修正） */
+/* simplified translucent body — depthWrite:false なので内側の光を隠さない */
 function bodyMat(){ return reg(new THREE.MeshStandardMaterial({color:0x9f95d6,transparent:true,opacity:0.1,roughness:.7,side:THREE.DoubleSide,depthWrite:false})); }
 function part(geo,y,x=0,rot=0){ const me=new THREE.Mesh(geo,bodyMat()); me.position.set(x,y,0); if(rot)me.rotation.z=rot; groups.body.add(me); }
 part(new THREE.SphereGeometry(0.5,24,20),2.2);
@@ -226,7 +221,7 @@ const orgMat=()=>reg(new THREE.MeshStandardMaterial({color:0x8fd0c8,transparent:
 function organ(y,r,id,x=0){ const o=new THREE.Mesh(new THREE.SphereGeometry(r,16,12),orgMat()); o.position.set(x,y,0.05); o.userData.id=id; groups.organ.add(o); clickable.push({mesh:o,group:'organ'}); }
 organ(0.55,0.3,'heartlung',-0.16); organ(0.55,0.26,'heartlung',0.2); organ(-0.05,0.3,'digest',0.04); organ(-0.7,0.36,'intestine'); organ(2.15,0.3,'brain');
 
-/* chakra volumes (tightened: smaller/less opaque = 澄んだ理想形) */
+/* chakra volumes (澄んだ理想形) */
 const chakras=[
   {id:'earth',y:-3.05,color:0x9b6bff,r:0.42},
   {id:'c1',y:-1.55,color:0xbd3333,r:0.44},
@@ -313,7 +308,7 @@ function renderOverview(){
     <div class="f-sub">整った平均・理想の形。個々の実際は Journal 側で描く。</div>
     <div class="f-sec"><div class="f-meaning">左のレイヤーで重ね、視点を変え、断面で上から覗く。<b style="color:#c9b6ff">チャクラをクリック</b>すると、ここにその情報が出ます。</div></div>
     <div class="f-note">意味・手がかり・ケースは『チャクラその生命の原理』(本文)からの引用＝実践者の観察。身体・神経・臓器は参照レンズ（解剖／モデル）。<br>
-    ※実モデル差し替え：現状は簡易素体。Z-Anatomy / BodyParts3D 等の .glb を用意すれば GLTFLoader で差し替え可能（コード上にスロット有り）。ただし実モデルは数MBと重く、ライセンス(CC BY-SA=帰属・継承)の確認が要るため、ここでは素体のまま。</div>`;
+    ※実モデル差し替え：Z-Anatomy / BodyParts3D 等の .glb を用意すれば GLTFLoader で差し替え可能。ライセンス(CC BY-SA=帰属・継承)の確認を。</div>`;
 }
 function renderFocus(id){
   const d=info[id]; if(!d){ renderOverview(); return; }
@@ -380,13 +375,13 @@ function updateClip(){
 clipOn.onchange=()=>{ updateClip(); if(clipOn.checked){ camera.position.set(...viewPos.top); controls.target.set(0,0.2,0);} };
 clip.oninput=updateClip;
 
-/* ---- raycast click on chakra ---- */
+/* ---- raycast click ---- */
 const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
 let downXY=null;
 renderer.domElement.addEventListener('pointerdown',e=>{ downXY=[e.clientX,e.clientY]; });
 renderer.domElement.addEventListener('pointerup',e=>{
   if(!downXY) return; const moved=Math.hypot(e.clientX-downXY[0],e.clientY-downXY[1]); downXY=null;
-  if(moved>6) return; // drag, not click
+  if(moved>6) return;
   ndc.x=(e.clientX/innerWidth)*2-1; ndc.y=-(e.clientY/innerHeight)*2+1;
   ray.setFromCamera(ndc,camera);
   const targets=clickable.filter(c=>groups[c.group].visible).map(c=>c.mesh);
