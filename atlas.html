@@ -159,28 +159,43 @@ dracoLoader.setDecoderPath(
   'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/'
 );
 
+let skeletonMirror=null; // 全身/半分 切替用
+
 const gltfLoader = new GLTFLoader();
 gltfLoader.setDRACOLoader(dracoLoader);
 
 gltfLoader.load(
   'models/skeleton.glb',
   (gltf)=>{
-    // ==== 位置合わせ・見ながら微調整できる4つのつまみ ====
-    const FIT_HEIGHT = 6.6;   // 縦幅（大きく/小さく）
-    const FIT_X      = -0.4    // 左右（−で左へ / ＋で右へ）※右にズレていたら -0.4 等
-    const FIT_Y      = -0.3;  // 上下（＋で上へ / −で下へ）
-    const FIT_ROT_Y  = 0;     // 向き（逆なら Math.PI、横向きなら Math.PI/2 や -Math.PI/2）
+    // ==== つまみ ====
+    const FIT_HEIGHT = 6.6;   // 縦幅
+    const FIT_X      = 0;     // 左右（全身は対称なので基本0。ズレたら微調整）
+    const FIT_Y      = -0.3;  // 上下
+    const FIT_ROT_Y  = 0;     // 向き
+    const MIRROR_SEAM= 0;     // 全身にした時、中央の継ぎ目に隙間/重なりがあれば調整（例 0.02 / -0.02）
 
-    const box=new THREE.Box3().setFromObject(gltf.scene);
+    const half = gltf.scene;               // 読み込んだ半身＝矢状断
+    const mirror = half.clone(true);       // 反対側を鏡像で生成
+    mirror.scale.x = -1;
+    mirror.position.x = MIRROR_SEAM;
+    mirror.traverse(o=>{ if(o.material) o.material.side = THREE.DoubleSide; }); // 反転面が消えないように
+    skeletonMirror = mirror;
+
+    const modelRoot = new THREE.Group();
+    modelRoot.add(half);
+    modelRoot.add(mirror);                 // 全身（半分＋鏡像）
+
+    // 全身を基準に採寸・センタリング
+    const box=new THREE.Box3().setFromObject(modelRoot);
     const size=new THREE.Vector3(); box.getSize(size);
     const center=new THREE.Vector3(); box.getCenter(center);
-    gltf.scene.position.sub(center);            // 幾何中心を原点へ
+    modelRoot.position.sub(center);
     const pivot=new THREE.Group();
-    pivot.add(gltf.scene);
+    pivot.add(modelRoot);
     const s=FIT_HEIGHT/(size.y||1);
     pivot.scale.setScalar(s);
     pivot.rotation.set(0,FIT_ROT_Y,0);
-    pivot.position.set(FIT_X, FIT_Y, 0);        // ← FIT_X を追加
+    pivot.position.set(FIT_X, FIT_Y, 0);
     groups.model.add(pivot);
 
     console.log('Skeleton Loaded');
