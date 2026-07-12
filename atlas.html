@@ -139,9 +139,9 @@ mount.appendChild(renderer.domElement);
 
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,0.1,100);
-camera.position.set(0,0.4,9);
+camera.position.set(0,-0.15,9.6);
 const controls=new OrbitControls(camera,renderer.domElement);
-controls.enableDamping=true; controls.dampingFactor=0.08; controls.target.set(0,0.2,0);
+controls.enableDamping=true; controls.dampingFactor=0.08; controls.target.set(0,-0.35,0);
 
 scene.add(new THREE.AmbientLight(0x8a7fff,0.7));
 const dir=new THREE.DirectionalLight(0xffffff,0.5); dir.position.set(3,5,6); scene.add(dir);
@@ -196,6 +196,8 @@ gltfLoader.load(
     pivot.scale.setScalar(s);
     pivot.rotation.set(0,FIT_ROT_Y,0);
     pivot.position.set(FIT_X, FIT_Y, 0);
+    // 水平断面(CT)を実骨格にも効かせる：読み込んだ全マテリアルに同じ切断面を渡す
+    pivot.traverse(o=>{ if(o.isMesh && o.material){ (Array.isArray(o.material)?o.material:[o.material]).forEach(mm=>{ mm.clippingPlanes=[clipPlane]; mm.clipShadows=true; }); } });
     groups.model.add(pivot);
 
     console.log('Skeleton Loaded');
@@ -241,18 +243,41 @@ const chakras=[
   {id:'c2',   y:-0.05,color:0xc77723, r:0.20},  // 第二：骨盤の中
   {id:'c3',   y:0.60, color:0xc9bd45, r:0.24},  // 第三：横隔膜（肋骨の下端）
   {id:'c4',   y:1.25, color:0x3fbd62, r:0.26},  // 第四：心臓（胸の中央）
-  {id:'c5',   y:1.90, color:0x31b7c8, r:0.22},  // 第五：喉（胸鎖関節上部）
+  {id:'c5',   y:2.05, color:0x31b7c8, r:0.22},  // 第五：喉（喉頭・胸鎖関節の上／実骨格で確認）
   {id:'c6',   y:2.55, color:0x5f7dff, r:0.22},  // 第六：眉間
-  {id:'c7',   y:3.10, color:0xb48cff, r:0.24},  // 第七：頭頂（半分出る/少し浮く）
+  {id:'c7',   y:3.05, color:0xb48cff, r:0.24},  // 第七：頭頂（頭蓋頂 y3.0 に半分載る）
 ];
+/* 放射光テクスチャ（中心から外へ減衰する白い放射グラデ・色は各スプライトで着色） */
+function glowTexture(){
+  const s=128, cv=document.createElement('canvas'); cv.width=cv.height=s;
+  const g=cv.getContext('2d'), grd=g.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+  grd.addColorStop(0.00,'rgba(255,255,255,1)');
+  grd.addColorStop(0.16,'rgba(255,255,255,0.9)');
+  grd.addColorStop(0.42,'rgba(255,255,255,0.35)');
+  grd.addColorStop(0.72,'rgba(255,255,255,0.08)');
+  grd.addColorStop(1.00,'rgba(255,255,255,0)');
+  g.fillStyle=grd; g.fillRect(0,0,s,s);
+  const t=new THREE.CanvasTexture(cv); t.needsUpdate=true; return t;
+}
+const GLOW_TEX=glowTexture();
+const GLOW_SCALE=2.0;   // 放射光の広がり（半径＝r×これ。大きいほど遠くまで光る／隣と滲むなら下げる）
+const CORE_SCALE=0.6;   // 中心の白熱コア（小さいほど点光源的・色が濁らない）
+
 const chakraMeshes=[];
 chakras.forEach(c=>{
-  const m=reg(new THREE.MeshBasicMaterial({color:c.color,transparent:true,opacity:.4,blending:THREE.AdditiveBlending,depthWrite:false}));
+  // 立体（断面CTで同心リングとして切れる本体・クリック対象）— 光は控えめに
+  const m=reg(new THREE.MeshBasicMaterial({color:c.color,transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false}));
   const mesh=new THREE.Mesh(new THREE.SphereGeometry(c.r,24,20),m);
-  mesh.position.set(0,c.y,0); mesh.userData.id=c.id; groups.chakra.add(mesh); chakraMeshes.push(mesh); clickable.push({mesh,group:'chakra'});
-  const core=new THREE.Mesh(new THREE.SphereGeometry(c.r*0.3,14,12),
-    reg(new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false})));
-  core.position.copy(mesh.position); groups.chakra.add(core);
+  mesh.position.set(0,c.y,0); mesh.userData.id=c.id;
+  // 放射光（カメラを向くビルボード・体を透かして常に光る）
+  const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW_TEX,color:c.color,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,depthTest:false}));
+  const gs=c.r*GLOW_SCALE*2; glow.scale.set(gs,gs,1); glow.position.copy(mesh.position); glow.renderOrder=2;
+  // 中心の白熱コア
+  const core=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW_TEX,color:0xffffff,opacity:0.8,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,depthTest:false}));
+  const cs=c.r*CORE_SCALE*2; core.scale.set(cs,cs,1); core.position.copy(mesh.position); core.renderOrder=3;
+  mesh.userData.glow=glow; mesh.userData.core=core; mesh.userData.baseGlow=gs;
+  groups.chakra.add(glow); groups.chakra.add(mesh); groups.chakra.add(core);
+  chakraMeshes.push(mesh); clickable.push({mesh,group:'chakra'});
 });
 
 /* ---- FOCUS content: 意味/手がかり/ケース は『チャクラその生命の原理』(利用者本文)より引用＝実践者の観察 ---- */
@@ -349,7 +374,10 @@ function renderPart(id){ const d=parts[id]; if(!d){ renderOverview(); return; }
 }
 let current=null;
 function selectChakra(id){ current=id; renderFocus(id);
-  chakraMeshes.forEach(m=>{ const sel=m.userData.id===id; m.scale.setScalar(sel?1.28:1); m.material.opacity=sel?.6:.4; }); }
+  chakraMeshes.forEach(m=>{ const sel=m.userData.id===id;
+    m.scale.setScalar(sel?1.28:1); m.material.opacity=sel?.4:.22;
+    const g=m.userData.glow; if(g){ const k=sel?1.4:1; g.scale.set(m.userData.baseGlow*k,m.userData.baseGlow*k,1); g.material.opacity=sel?1:0.85; }
+  }); }
 function selectItem(id){
   if(info[id]) selectChakra(id);
   else if(parts[id]){ current=id; renderPart(id); chakraMeshes.forEach(m=>{ m.scale.setScalar(1); m.material.opacity=.4; }); }
@@ -380,9 +408,9 @@ layers.forEach(L=>{ groups[L.id].visible=true;
 }
   
 /* ---- views ---- */
-const R=9;
-const viewPos={front:[0,0.4,R],side:[R,0.4,0],back:[0,0.4,-R],top:[0,R,0.001],reset:[0,0.4,R]};
-document.querySelectorAll('.views button').forEach(btn=>{ btn.onclick=()=>{ const p=viewPos[btn.dataset.v]; camera.position.set(...p); controls.target.set(0,0.2,0); }; });
+const R=9.6, CY=-0.15;
+const viewPos={front:[0,CY,R],side:[R,CY,0],back:[0,CY,-R],top:[0,R,0.001],reset:[0,CY,R]};
+document.querySelectorAll('.views button').forEach(btn=>{ btn.onclick=()=>{ const p=viewPos[btn.dataset.v]; camera.position.set(...p); controls.target.set(0,-0.35,0); }; });
 
 /* ---- clip ---- */
 const clipOn=document.getElementById('clipOn'),clip=document.getElementById('clip'),clipLab=document.getElementById('clipLab'),clipZ=document.getElementById('clipZ');
@@ -394,7 +422,7 @@ function updateClip(){
   clipLab.textContent=levelName(y); clipZ.textContent='y='+y.toFixed(2);
   if(clipOn.checked){ const id=nearChakra(y); if(id&&id!==current) selectChakra(id); }
 }
-clipOn.onchange=()=>{ updateClip(); if(clipOn.checked){ camera.position.set(...viewPos.top); controls.target.set(0,0.2,0);} };
+clipOn.onchange=()=>{ updateClip(); if(clipOn.checked){ camera.position.set(...viewPos.top); controls.target.set(0,-0.35,0);} };
 clip.oninput=updateClip;
 
 /* ---- raycast click ---- */
