@@ -99,7 +99,7 @@ input[type=range]{width:100%;accent-color:#c9b6ff}
   <h3 class="mt">水平断面（CT）</h3>
   <label class="chk"><input type="checkbox" id="clipOn" /> 断面で切る（上から覗く）</label>
   <div class="rowlab"><span id="clipLab">胸のあたり</span><span id="clipZ"></span></div>
-  <input type="range" id="clip" min="-320" max="270" value="60" />
+  <input type="range" id="clip" min="-360" max="300" value="60" />
 </div>
 
 <!-- RIGHT: focus panel -->
@@ -414,7 +414,7 @@ document.querySelectorAll('.views button').forEach(btn=>{ btn.onclick=()=>{ cons
 
 /* ---- clip ---- */
 const clipOn=document.getElementById('clipOn'),clip=document.getElementById('clip'),clipLab=document.getElementById('clipLab'),clipZ=document.getElementById('clipZ');
-function levelName(y){ if(y>2.4)return'頭頂';if(y>1.7)return'頭・眉間';if(y>1.1)return'喉・首';if(y>0.2)return'胸';if(y>-0.4)return'みぞおち';if(y>-1.2)return'臍下・腹';if(y>-2.6)return'骨盤・脚';return'アース（接地）'; }
+function levelName(y){ if(y>2.7)return'頭頂';if(y>2.4)return'頭蓋上部';if(y>1.7)return'頭・眉間';if(y>1.1)return'喉・首';if(y>0.2)return'胸';if(y>-0.4)return'みぞおち';if(y>-1.2)return'臍下・腹';if(y>-2.6)return'骨盤・脚';if(y>-3.3)return'下腿';return'足首・足裏'; }
 function nearChakra(y){ let best=null,bd=0.6; chakras.forEach(c=>{const dd=Math.abs(c.y-y); if(dd<bd){bd=dd;best=c;}}); return best?best.id:null; }
 function updateClip(){
   const y=(+clip.value)/100;
