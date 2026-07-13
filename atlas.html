@@ -147,6 +147,7 @@ const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,0.1,100);
 camera.position.set(0,-0.15,9.6);
 const controls=new OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true; controls.dampingFactor=0.08; controls.target.set(0,-0.35,0);
+controls.enablePan=true; controls.screenSpacePanning=true; controls.zoomToCursor=true;  // D案：カーソル位置へ寄る＋パンで全長を上下左右
 
 scene.add(new THREE.AmbientLight(0x8a7fff,0.7));                       // 土台（どこも真っ黒にしない）
 const dir=new THREE.DirectionalLight(0xffffff,0.6); scene.add(dir);   // 視点追従ヘッドランプ
@@ -475,6 +476,15 @@ renderer.domElement.addEventListener('pointerup',e=>{
   const targets=clickable.filter(c=>groups[c.group].visible).map(c=>c.mesh);
   const hits=ray.intersectObjects(targets,false);
   if(hits.length) selectItem(hits[0].object.userData.id);
+});
+
+/* ---- hover: 内容がある対象の上ではカーソルを指に ---- */
+renderer.domElement.addEventListener('pointermove',e=>{
+  if(downXY) return;                                   // ドラッグ中は無視
+  ndc.x=(e.clientX/innerWidth)*2-1; ndc.y=-(e.clientY/innerHeight)*2+1;
+  ray.setFromCamera(ndc,camera);
+  const targets=clickable.filter(c=>groups[c.group].visible).map(c=>c.mesh);
+  renderer.domElement.style.cursor = ray.intersectObjects(targets,false).length ? 'pointer' : 'default';
 });
 
 /* ---- init / loop ---- */
