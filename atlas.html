@@ -432,22 +432,25 @@ function levelName(y){ if(y>2.7)return'頭頂';if(y>2.4)return'頭蓋上部';if(
 function nearChakra(y){ let best=null,bd=0.6; chakras.forEach(c=>{const dd=Math.abs(c.y-y); if(dd<bd){bd=dd;best=c;}}); return best?best.id:null; }
 function setCutView(){ camera.position.set(...(plane==='h'?viewPos.top:viewPos.side)); controls.target.set(0,-0.35,0); }
 function updateCut(){
-  const Oy=(+clip.value)/100;
-  if(tenchiCross) tenchiCross.position.y=Oy;
-  if(!clipOn.checked){ clipPlane.normal.set(0,-1,0); clipPlane.constant=1e5; }         // 切らない＝全て残す
-  else if(plane==='h'){                                                                  // 水平面（高さ Oy）
-    if(!flip){ clipPlane.normal.set(0,-1,0); clipPlane.constant=Oy; }                    //   上を消す＝下を残す
-    else     { clipPlane.normal.set(0, 1,0); clipPlane.constant=-Oy; }                   //   反転：下を消す＝上（頭蓋）を残し中を覗く
-  } else {                                                                                // 矢状面（正中 x=0）
-    if(!flip){ clipPlane.normal.set(-1,0,0); clipPlane.constant=0; }                     //   片側を残す
-    else     { clipPlane.normal.set( 1,0,0); clipPlane.constant=0; }                     //   反転：反対側から
+  const v=(+clip.value)/100;                                                             // 選んだ面の法線方向の位置
+  const on=clipOn.checked;
+  if(!on){ clipPlane.normal.set(0,-1,0); clipPlane.constant=1e5; }                        // 切らない＝全て残す
+  else if(plane==='h'){                                                                    // 水平面：高さ v で切る
+    if(!flip){ clipPlane.normal.set(0,-1,0); clipPlane.constant=v; }                       //   上を消す＝下を残す
+    else     { clipPlane.normal.set(0, 1,0); clipPlane.constant=-v; }                      //   反転：下を消す＝頭蓋の中を覗く
+  } else {                                                                                 // 矢状面：左右位置 v で切る（正中=0）
+    if(!flip){ clipPlane.normal.set(-1,0,0); clipPlane.constant=v; }                       //   片側を残す（左右に掃ける）
+    else     { clipPlane.normal.set( 1,0,0); clipPlane.constant=-v; }                      //   反転：反対側
   }
-  clipLab.textContent = plane==='h' ? levelName(Oy) : '矢状断（正中）';
-  clipZ.textContent   = plane==='h' ? ('y='+Oy.toFixed(2)) : ('十字 y='+Oy.toFixed(2));
-  if(clipOn.checked){ const id=nearChakra(Oy); if(id&&id!==current) selectChakra(id); }
+  if(tenchiCross){ if(plane==='h') tenchiCross.position.set(0,v,0); else tenchiCross.position.set(v,0,0); }  // 十字＝切断位置
+  if(plane==='h'){ clipLab.textContent=levelName(v); clipZ.textContent='y='+v.toFixed(2); }
+  else { clipLab.textContent = Math.abs(v)<0.06?'矢状断（正中）':'矢状断（側方へ）'; clipZ.textContent='x='+v.toFixed(2); }
+  if(on && plane==='h'){ const id=nearChakra(v); if(id&&id!==current) selectChakra(id); }
 }
 document.querySelectorAll('[data-plane]').forEach(b=>{ b.onclick=()=>{ plane=b.dataset.plane;
   document.querySelectorAll('[data-plane]').forEach(x=>x.classList.toggle('on',x===b));
+  if(plane==='h'){ clip.min=-360; clip.max=300; clip.value=60; }                          // 高さ（頭頂〜足裏）
+  else           { clip.min=-130; clip.max=130; clip.value=0; }                           // 左右（正中=0、±で側方へ）
   updateCut(); if(clipOn.checked) setCutView(); }; });
 flipChk.onchange=()=>{ flip=flipChk.checked; updateCut(); };
 clipOn.onchange=()=>{ updateCut(); if(clipOn.checked) setCutView(); };
