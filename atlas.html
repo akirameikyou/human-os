@@ -30,6 +30,7 @@ body{background:#050018;color:#f4f1ff;font-family:"Yu Mincho","Hiragino Mincho P
 .views{display:flex;gap:6px;flex-wrap:wrap}
 .views button{flex:1;min-width:48px;font-family:"Yu Gothic",sans-serif;font-size:11px;padding:6px 4px;background:transparent;border:1px solid rgba(244,241,255,.14);color:rgba(244,241,255,.75);cursor:pointer}
 .views button:hover{border-color:#c9b6ff;color:#fff}
+.views button.on{border-color:#c9b6ff;color:#fff}
 .rowlab{font-family:"Yu Gothic",sans-serif;font-size:11px;color:rgba(244,241,255,.55);margin:12px 0 6px;display:flex;justify-content:space-between}
 .rowlab span{color:#c9b6ff}
 input[type=range]{width:100%;accent-color:#c9b6ff}
@@ -96,16 +97,20 @@ input[type=range]{width:100%;accent-color:#c9b6ff}
     <button data-v="front">前面</button><button data-v="side">側面</button>
     <button data-v="back">背面</button><button data-v="top">上から</button><button data-v="reset">戻す</button>
   </div>
-  <h3 class="mt">水平断面（CT）</h3>
-  <label class="chk"><input type="checkbox" id="clipOn" /> 断面で切る（上から覗く）</label>
-  <div class="rowlab"><span id="clipLab">胸のあたり</span><span id="clipZ"></span></div>
+  <h3 class="mt">断面（CT）— 天津金木</h3>
+  <label class="chk"><input type="checkbox" id="clipOn" /> 断面で切る</label>
+  <div class="views" style="margin-top:8px">
+    <button data-plane="h" class="on">水平</button><button data-plane="s">矢状</button>
+  </div>
+  <label class="chk"><input type="checkbox" id="flipChk" /> 反転（向こう側から観る）</label>
+  <div class="rowlab"><span id="clipLab">胸</span><span id="clipZ"></span></div>
   <input type="range" id="clip" min="-360" max="300" value="60" />
 </div>
 
 <!-- RIGHT: focus panel -->
 <div class="panel right" id="focus"></div>
 
-<div class="hint"><b>ドラッグ</b>＝回転（背面まで）／<b>ホイール</b>＝寄る引く／<b>チャクラをクリック</b>＝右に情報／<b>断面バー</b>＝その高さを読む</div>
+<div class="hint"><b>ドラッグ</b>＝回転（背面まで）／<b>ホイール</b>＝寄る引く／<b>チャクラをクリック</b>＝右に情報／<b>断面</b>＝面（水平・矢状）を選び、反転で向こう側から観る</div>
 
 <script type="importmap">
 { "imports": {
@@ -150,7 +155,7 @@ const clipPlane=new THREE.Plane(new THREE.Vector3(0,-1,0),100);
 const materials=[];
 function reg(m){ m.clippingPlanes=[clipPlane]; materials.push(m); return m; }
 
-const groups={ body:new THREE.Group(), skeleton:new THREE.Group(), organ:new THREE.Group(), chakra:new THREE.Group(), model:new THREE.Group() };
+const groups={ body:new THREE.Group(), skeleton:new THREE.Group(), organ:new THREE.Group(), chakra:new THREE.Group(), model:new THREE.Group(), tenchi:new THREE.Group() };
 Object.values(groups).forEach(g=>scene.add(g));
 
 /* ---- GLTFLoader + DRACOLoader: models/skeleton.glb を groups.model へ ---- */
@@ -207,9 +212,14 @@ gltfLoader.load(
   (err)=>{ console.error('Skeleton load error:', err); }
 );
 
-/* central axis (中心軸=天地を貫く垂線) */
-{ const m=reg(new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.4}));
-  const line=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,5.6,8),m); groups.body.add(line); }
+/* 天津金木：天地を貫く垂線（固定）＋ 各チャクラ階層へ上下する水平十字（前後×左右）。参照枠なので切断はしない */
+let tenchiCross=null;
+{ const mat=()=>new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.3});
+  const axis=new THREE.Mesh(new THREE.CylinderGeometry(0.01,0.01,6.8,8),mat()); axis.position.y=-0.25; groups.tenchi.add(axis);
+  tenchiCross=new THREE.Group();
+  const armX=new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,2.6,6),mat()); armX.rotation.z=Math.PI/2; tenchiCross.add(armX);  // 左右
+  const armZ=new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,2.0,6),mat()); armZ.rotation.x=Math.PI/2; tenchiCross.add(armZ);  // 前後
+  groups.tenchi.add(tenchiCross); }
 
 /* simplified translucent body — depthWrite:false なので内側の光を隠さない */
 function bodyMat(){ return reg(new THREE.MeshStandardMaterial({color:0x9f95d6,transparent:true,opacity:0.1,roughness:.7,side:THREE.DoubleSide,depthWrite:false})); }
@@ -389,6 +399,7 @@ const layers=[
   {id:'skeleton',name:'骨格',kind:'解剖',src:'Terminologia Anatomica',color:'#dfe4ee'},
   {id:'organ',name:'臓器',kind:'解剖',src:'解剖学（概略）',color:'#8fd0c8'},
   {id:'chakra',name:'チャクラ（立体）',kind:'伝統',src:'ヨーガ／本文',color:'#c9a6ff'},
+  {id:'tenchi',name:'天津金木（軸の十字）',kind:'基準',src:'千座神業',color:'#ffffff'},
 ];
 const layerBox=document.getElementById('layerList');
 layers.forEach(L=>{ groups[L.id].visible=true;
@@ -412,18 +423,35 @@ const R=9.6, CY=-0.15;
 const viewPos={front:[0,CY,R],side:[R,CY,0],back:[0,CY,-R],top:[0,R,0.001],reset:[0,CY,R]};
 document.querySelectorAll('.views button').forEach(btn=>{ btn.onclick=()=>{ const p=viewPos[btn.dataset.v]; camera.position.set(...p); controls.target.set(0,-0.35,0); }; });
 
-/* ---- clip ---- */
-const clipOn=document.getElementById('clipOn'),clip=document.getElementById('clip'),clipLab=document.getElementById('clipLab'),clipZ=document.getElementById('clipZ');
+/* ---- 断面（CT）: 天津金木・オプトイン切断（面一枚／反転可） ----
+   スライダー＝十字の高さ Oy（各チャクラ階層へ上下）。選んだ面がそこで切る。
+   THREE.Plane は normal·p + constant ≧ 0 の側を残す。 */
+const clipOn=document.getElementById('clipOn'),clip=document.getElementById('clip'),clipLab=document.getElementById('clipLab'),clipZ=document.getElementById('clipZ'),flipChk=document.getElementById('flipChk');
+let plane='h', flip=false;
 function levelName(y){ if(y>2.7)return'頭頂';if(y>2.4)return'頭蓋上部';if(y>1.7)return'頭・眉間';if(y>1.1)return'喉・首';if(y>0.2)return'胸';if(y>-0.4)return'みぞおち';if(y>-1.2)return'臍下・腹';if(y>-2.6)return'骨盤・脚';if(y>-3.3)return'下腿';return'足首・足裏'; }
 function nearChakra(y){ let best=null,bd=0.6; chakras.forEach(c=>{const dd=Math.abs(c.y-y); if(dd<bd){bd=dd;best=c;}}); return best?best.id:null; }
-function updateClip(){
-  const y=(+clip.value)/100;
-  clipPlane.constant=clipOn.checked?y:100;
-  clipLab.textContent=levelName(y); clipZ.textContent='y='+y.toFixed(2);
-  if(clipOn.checked){ const id=nearChakra(y); if(id&&id!==current) selectChakra(id); }
+function setCutView(){ camera.position.set(...(plane==='h'?viewPos.top:viewPos.side)); controls.target.set(0,-0.35,0); }
+function updateCut(){
+  const Oy=(+clip.value)/100;
+  if(tenchiCross) tenchiCross.position.y=Oy;
+  if(!clipOn.checked){ clipPlane.normal.set(0,-1,0); clipPlane.constant=1e5; }         // 切らない＝全て残す
+  else if(plane==='h'){                                                                  // 水平面（高さ Oy）
+    if(!flip){ clipPlane.normal.set(0,-1,0); clipPlane.constant=Oy; }                    //   上を消す＝下を残す
+    else     { clipPlane.normal.set(0, 1,0); clipPlane.constant=-Oy; }                   //   反転：下を消す＝上（頭蓋）を残し中を覗く
+  } else {                                                                                // 矢状面（正中 x=0）
+    if(!flip){ clipPlane.normal.set(-1,0,0); clipPlane.constant=0; }                     //   片側を残す
+    else     { clipPlane.normal.set( 1,0,0); clipPlane.constant=0; }                     //   反転：反対側から
+  }
+  clipLab.textContent = plane==='h' ? levelName(Oy) : '矢状断（正中）';
+  clipZ.textContent   = plane==='h' ? ('y='+Oy.toFixed(2)) : ('十字 y='+Oy.toFixed(2));
+  if(clipOn.checked){ const id=nearChakra(Oy); if(id&&id!==current) selectChakra(id); }
 }
-clipOn.onchange=()=>{ updateClip(); if(clipOn.checked){ camera.position.set(...viewPos.top); controls.target.set(0,-0.35,0);} };
-clip.oninput=updateClip;
+document.querySelectorAll('[data-plane]').forEach(b=>{ b.onclick=()=>{ plane=b.dataset.plane;
+  document.querySelectorAll('[data-plane]').forEach(x=>x.classList.toggle('on',x===b));
+  updateCut(); if(clipOn.checked) setCutView(); }; });
+flipChk.onchange=()=>{ flip=flipChk.checked; updateCut(); };
+clipOn.onchange=()=>{ updateCut(); if(clipOn.checked) setCutView(); };
+clip.oninput=updateCut;
 
 /* ---- raycast click ---- */
 const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
@@ -441,7 +469,7 @@ renderer.domElement.addEventListener('pointerup',e=>{
 
 /* ---- init / loop ---- */
 addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
-renderOverview(); updateClip();
+renderOverview(); updateCut();
 (function animate(){ requestAnimationFrame(animate); controls.update(); groups.chakra.rotation.y+=0.0008; renderer.render(scene,camera); })();
 window.__ok=true;
 </script>
