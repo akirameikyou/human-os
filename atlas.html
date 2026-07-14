@@ -406,23 +406,24 @@ function selectItem(id){
 /* ---- layers UI ---- */
 const layers=[
   {id:'body',name:'素体（簡易）',kind:'図式',src:'schematic（写実ではない）',color:'#9f95d6'},
-  {id:'skeleton',name:'骨格',kind:'解剖',src:'Terminologia Anatomica',color:'#dfe4ee'},
+  {id:'model',name:'実骨格',kind:'解剖',src:'Z-Anatomy系 glTF',color:'#cfd8e6'},
+  {id:'skeleton',name:'簡易骨格（仮）',kind:'図式',src:'schematic（実骨格が本命）',color:'#8f96a3',off:true},
   {id:'organ',name:'臓器',kind:'解剖',src:'解剖学（概略）',color:'#8fd0c8'},
   {id:'chakra',name:'チャクラ（立体）',kind:'伝統',src:'ヨーガ／本文',color:'#c9a6ff'},
   {id:'tenchi',name:'天津金木（軸の十字）',kind:'基準',src:'千座神業',color:'#ffffff'},
 ];
 const layerBox=document.getElementById('layerList');
-layers.forEach(L=>{ groups[L.id].visible=true;
-  const b=document.createElement('button'); b.className='lbtn on'; b.style.color=L.color;
+layers.forEach(L=>{ groups[L.id].visible=!L.off;
+  const b=document.createElement('button'); b.className='lbtn'+(L.off?'':' on'); b.style.color=L.color;
   b.innerHTML=`<span class="nm"><span class="dot"></span><span style="color:#f4f1ff">${L.name}</span></span>
     <span class="meta"><span class="badge">${L.kind}</span>典拠：${L.src}</span>`;
   b.onclick=()=>{ groups[L.id].visible=!groups[L.id].visible; b.classList.toggle('on',groups[L.id].visible); };
   layerBox.appendChild(b); });
 
- /* 実骨格 全身 ⇄ 半分（矢状断）トグル */
-{ const b=document.createElement('button'); b.className='lbtn on'; b.style.color='#dfe4ee';
+ /* 実骨格の下位スイッチ：全身 ⇄ 半分（矢状断） */
+{ const b=document.createElement('button'); b.className='lbtn'; b.style.color='#cfd8e6';
   let full=true;
-  const label=()=>`<span class="nm"><span class="dot"></span><span style="color:#f4f1ff">実骨格：${full?'全身':'半分（矢状断）'}</span></span>`;
+  const label=()=>`<span class="nm" style="padding-left:16px"><span style="color:rgba(244,241,255,.72)">└ 実骨格を ${full?'全身':'半分（矢状断）'}</span></span>`;
   b.innerHTML=label();
   b.onclick=()=>{ full=!full; if(skeletonMirror) skeletonMirror.visible=full; b.innerHTML=label(); };
   layerBox.appendChild(b);
