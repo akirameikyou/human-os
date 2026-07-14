@@ -100,7 +100,7 @@ input[type=range]{width:100%;accent-color:#c9b6ff}
   <h3 class="mt">断面（CT）— 天津金木</h3>
   <label class="chk"><input type="checkbox" id="clipOn" /> 断面で切る</label>
   <div class="views" style="margin-top:8px">
-    <button data-plane="h" class="on">水平</button><button data-plane="s">矢状</button>
+    <button data-plane="h" class="on">水平</button><button data-plane="s">矢状</button><button data-plane="c">前頭</button>
   </div>
   <label class="chk"><input type="checkbox" id="flipChk" /> 反転（向こう側から観る）</label>
   <div class="rowlab"><span id="clipLab">胸</span><span id="clipZ"></span></div>
@@ -215,6 +215,8 @@ gltfLoader.load(
 
     console.log('Skeleton Loaded');
     console.log('model native size =', size.toArray().map(v=>+v.toFixed(3)));
+    // 実骨格の各骨をクリック/ホバー対象に（名前つき）
+    pivot.traverse(o=>{ if(o.isMesh && o.name){ o.userData.boneName=o.name; clickable.push({mesh:o, group:'model'}); } });
   },
   undefined,
   (err)=>{ console.error('Skeleton load error:', err); }
@@ -438,7 +440,7 @@ const clipOn=document.getElementById('clipOn'),clip=document.getElementById('cli
 let plane='h', flip=false;
 function levelName(y){ if(y>2.7)return'頭頂';if(y>2.4)return'頭蓋上部';if(y>1.7)return'頭・眉間';if(y>1.1)return'喉・首';if(y>0.2)return'胸';if(y>-0.4)return'みぞおち';if(y>-1.2)return'臍下・腹';if(y>-2.6)return'骨盤・脚';if(y>-3.3)return'下腿';return'足首・足裏'; }
 function nearChakra(y){ let best=null,bd=0.6; chakras.forEach(c=>{const dd=Math.abs(c.y-y); if(dd<bd){bd=dd;best=c;}}); return best?best.id:null; }
-function setCutView(){ camera.position.set(...(plane==='h'?viewPos.top:viewPos.side)); controls.target.set(0,-0.35,0); }
+function setCutView(){ camera.position.set(...(plane==='h'?viewPos.top : plane==='s'?viewPos.side : viewPos.front)); controls.target.set(0,-0.35,0); }
 function updateCut(){
   const v=(+clip.value)/100;                                                             // 選んだ面の法線方向の位置
   const on=clipOn.checked;
@@ -446,45 +448,89 @@ function updateCut(){
   else if(plane==='h'){                                                                    // 水平面：高さ v で切る
     if(!flip){ clipPlane.normal.set(0,-1,0); clipPlane.constant=v; }                       //   上を消す＝下を残す
     else     { clipPlane.normal.set(0, 1,0); clipPlane.constant=-v; }                      //   反転：下を消す＝頭蓋の中を覗く
-  } else {                                                                                 // 矢状面：左右位置 v で切る（正中=0）
+  } else if(plane==='s'){                                                                   // 矢状面：左右位置 v で切る（正中=0）
     if(!flip){ clipPlane.normal.set(-1,0,0); clipPlane.constant=v; }                       //   片側を残す（左右に掃ける）
     else     { clipPlane.normal.set( 1,0,0); clipPlane.constant=-v; }                      //   反転：反対側
+  } else {                                                                                 // 前頭面（冠状）：前後位置 v で切る（正中=0）
+    if(!flip){ clipPlane.normal.set(0,0,-1); clipPlane.constant=v; }                       //   後ろを残す（前後に掃ける）
+    else     { clipPlane.normal.set(0,0, 1); clipPlane.constant=-v; }                      //   反転：前を残す
   }
-  if(tenchiCross){ if(plane==='h') tenchiCross.position.set(0,v,0); else tenchiCross.position.set(v,0,0); }  // 十字＝切断位置
+  if(tenchiCross){ tenchiCross.position.set(plane==='s'?v:0, plane==='h'?v:0, plane==='c'?v:0); }  // 十字＝切断位置
   if(plane==='h'){ clipLab.textContent=levelName(v); clipZ.textContent='y='+v.toFixed(2); }
-  else { clipLab.textContent = Math.abs(v)<0.06?'矢状断（正中）':'矢状断（側方へ）'; clipZ.textContent='x='+v.toFixed(2); }
+  else if(plane==='s'){ clipLab.textContent = Math.abs(v)<0.06?'矢状断（正中）':'矢状断（側方へ）'; clipZ.textContent='x='+v.toFixed(2); }
+  else { clipLab.textContent = Math.abs(v)<0.06?'前頭断（正中）':'前頭断（前後へ）'; clipZ.textContent='z='+v.toFixed(2); }
   if(on && plane==='h'){ const id=nearChakra(v); if(id&&id!==current) selectChakra(id); }
 }
 document.querySelectorAll('[data-plane]').forEach(b=>{ b.onclick=()=>{ plane=b.dataset.plane;
   document.querySelectorAll('[data-plane]').forEach(x=>x.classList.toggle('on',x===b));
   if(plane==='h'){ clip.min=-360; clip.max=300; clip.value=60; }                          // 高さ（頭頂〜足裏）
-  else           { clip.min=-130; clip.max=130; clip.value=0; }                           // 左右（正中=0、±で側方へ）
+  else if(plane==='s'){ clip.min=-130; clip.max=130; clip.value=0; }                      // 左右（正中=0、±で側方へ）
+  else           { clip.min=-90; clip.max=90; clip.value=0; }                             // 前後（正中=0、±で前後へ）
   updateCut(); if(clipOn.checked) setCutView(); }; });
 flipChk.onchange=()=>{ flip=flipChk.checked; updateCut(); };
 clipOn.onchange=()=>{ updateCut(); if(clipOn.checked) setCutView(); };
 clip.oninput=updateCut;
 
-/* ---- raycast click ---- */
+/* ---- 実骨格の骨：英名→和名（骨単位。左右は軸未確定なので付けない） ---- */
+function boneJa(raw){ let m;
+  if(/^Atlas_\(C1\)/.test(raw)) return '第1頸椎（環椎）';
+  if(/^Axis_\(C2\)/.test(raw)) return '第2頸椎（軸椎）';
+  if(m=raw.match(/^Cervical_vertebrae_\(C(\d)\)/)) return '第'+m[1]+'頸椎';
+  if(m=raw.match(/^Thoracic_vertebrae_\(T(\d+)\)/)) return '第'+m[1]+'胸椎';
+  if(m=raw.match(/^Lumbar_vertebrae_\(L(\d)\)/)) return '第'+m[1]+'腰椎';
+  if(/^Sacrum/.test(raw)) return '仙骨';
+  if(/^Coccyx/.test(raw)) return '尾骨';
+  if(m=raw.match(/^Rib_\((\d+)\w+\)/)) return '第'+m[1]+'肋骨';
+  if(m=raw.match(/^Costal_cart_of_(\d+)\w+_rib/)) return '第'+m[1]+'肋軟骨';
+  if(/^Manubrium_of_sternum/.test(raw)) return '胸骨柄';
+  if(/^Body_of_sternum/.test(raw)) return '胸骨体';
+  if(m=raw.match(/^(\d)\w{0,2}_metacarpal/)) return '第'+m[1]+'中手骨';
+  if(m=raw.match(/^(Proximal|Middle|Distal)_phalanx_of_.*_of_foot/)) return '足の'+({Proximal:'基節骨',Middle:'中節骨',Distal:'末節骨'}[m[1]]);
+  if(m=raw.match(/^(Proximal|Middle|Distal)_phalanx_of_/)) return '手の'+({Proximal:'基節骨',Middle:'中節骨',Distal:'末節骨'}[m[1]]);
+  if(/tooth|incisor|canine|premolar|molar/i.test(raw)){ const up=/^Upper/.test(raw)?'上':'下'; let t='歯'; if(/incisor/.test(raw))t='切歯'; else if(/canine/.test(raw))t='犬歯'; else if(/premolar/.test(raw))t='小臼歯'; else if(/molar/.test(raw))t='大臼歯'; return up+t; }
+  const D=[[/^Frontal_bone/,'前頭骨'],[/^Occipital_bone/,'後頭骨'],[/^Sphenoid_bone/,'蝶形骨'],[/^Ethmoid_Bone/,'篩骨'],[/^Mandible_bone/,'下顎骨'],[/^Vomer$/,'鋤骨'],[/^Parietal_bone/,'頭頂骨'],[/^Temporal_bone/,'側頭骨'],[/^Nasal_bone/,'鼻骨'],[/^Lacrimal_bone/,'涙骨'],[/^Zygomatic_bone/,'頬骨'],[/^Maxilla_bone/,'上顎骨'],[/^Palatine_bone/,'口蓋骨'],[/^Inferior_nasal_concha/,'下鼻甲介'],[/^Hip_bone/,'寛骨'],[/^Femur/,'大腿骨'],[/^Patella/,'膝蓋骨'],[/^Tibia/,'脛骨'],[/^Fibula/,'腓骨'],[/^Humerus/,'上腕骨'],[/^Radius/,'橈骨'],[/^Ulna/,'尺骨'],[/^Clavicle/,'鎖骨'],[/^Scapula/,'肩甲骨'],[/^Scaphoid/,'舟状骨（手）'],[/^Lunate/,'月状骨'],[/^Triquetrum/,'三角骨'],[/^Pisiform/,'豆状骨'],[/^Trapezium/,'大菱形骨'],[/^Trapezoid/,'小菱形骨'],[/^Capitate/,'有頭骨'],[/^Hamate/,'有鈎骨'],[/^Talus/,'距骨'],[/^Calcaneus/,'踵骨'],[/^Navicular/,'舟状骨（足）'],[/^Cuboid/,'立方骨'],[/^Medial_cuneiform/,'内側楔状骨'],[/^Intermediate_cuneiform/,'中間楔状骨'],[/^Lateral_cuneiform/,'外側楔状骨'],[/^First_metatarsal/,'第1中足骨'],[/^Second_metatarsal/,'第2中足骨'],[/^Third_metatarsal/,'第3中足骨'],[/^Fourth_metatarsal/,'第4中足骨'],[/^Fifth_metatarsal/,'第5中足骨'],[/^Sesamoid_bones_of_hand/,'種子骨（手）'],[/^Sesamoid_bones_of_foot/,'種子骨（足）']];
+  for(const [re,ja] of D){ if(re.test(raw)) return ja; }
+  return raw.replace(/_/g,' ').replace(/\s*r$/,'').trim();   // フォールバック：整形英名
+}
+function renderBone(raw, point){
+  const ja=boneJa(raw);
+  const lvl = point?levelName(point.y):''; const chk = point?nearChakra(point.y):null;
+  current=null; chakraMeshes.forEach(mm=>{ mm.scale.setScalar(1); mm.material.opacity=.4; });
+  focusEl.innerHTML=`
+    <div class="f-kick">FOCUS / BONE</div>
+    <div class="f-title" style="color:#dfe4ee"><span class="fdot"></span>${ja}</div>
+    <div class="f-sub">実骨格の部位（クリックで選択中）</div>
+    <div class="f-sec"><h5>解説${tierTag('解剖')}</h5><div class="f-meaning">実解剖モデルの骨。英名：${raw.replace(/_/g,' ')}</div></div>
+    <div class="f-sec"><h5>高さ・対応</h5><div class="body">およその高さ：${lvl}${chk&&info[chk]?'　／　近いチャクラ：'+info[chk].name:''}</div></div>
+    <div class="f-note">実骨格＝解剖(実線・計測)の層。名称は Z-Anatomy系モデルのメッシュ名からの近似対応で、骨単位（粗面・棘突起等の下位部位は未分割）。左右は軸未確定のため未表示。真偽は証明しない。</div>`;
+}
+
+/* ---- raycast: クリック＆ホバー（クリップ面で切り落とした側は無視） ---- */
 const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
+function ancestorsVisible(o){ while(o){ if(!o.visible) return false; o=o.parent; } return true; }
+function pick(cx,cy){
+  ndc.x=(cx/innerWidth)*2-1; ndc.y=-(cy/innerHeight)*2+1;
+  ray.setFromCamera(ndc,camera);
+  const targets=clickable.filter(c=>groups[c.group].visible && ancestorsVisible(c.mesh)).map(c=>c.mesh);
+  const hits=ray.intersectObjects(targets,false);
+  for(const h of hits){ if(!clipOn.checked || clipPlane.distanceToPoint(h.point)>=0) return h; }  // 残っている側の最初のヒット
+  return null;
+}
 let downXY=null;
 renderer.domElement.addEventListener('pointerdown',e=>{ downXY=[e.clientX,e.clientY]; });
 renderer.domElement.addEventListener('pointerup',e=>{
   if(!downXY) return; const moved=Math.hypot(e.clientX-downXY[0],e.clientY-downXY[1]); downXY=null;
   if(moved>6) return;
-  ndc.x=(e.clientX/innerWidth)*2-1; ndc.y=-(e.clientY/innerHeight)*2+1;
-  ray.setFromCamera(ndc,camera);
-  const targets=clickable.filter(c=>groups[c.group].visible).map(c=>c.mesh);
-  const hits=ray.intersectObjects(targets,false);
-  if(hits.length) selectItem(hits[0].object.userData.id);
+  const h=pick(e.clientX,e.clientY); if(!h) return;
+  const o=h.object;
+  if(o.userData.boneName) renderBone(o.userData.boneName, h.point);
+  else if(o.userData.id) selectItem(o.userData.id);
 });
-
-/* ---- hover: 内容がある対象の上ではカーソルを指に ---- */
+/* hover：内容がある対象の上でカーソルを指に（間引き） */
+let hoverT=0;
 renderer.domElement.addEventListener('pointermove',e=>{
-  if(downXY) return;                                   // ドラッグ中は無視
-  ndc.x=(e.clientX/innerWidth)*2-1; ndc.y=-(e.clientY/innerHeight)*2+1;
-  ray.setFromCamera(ndc,camera);
-  const targets=clickable.filter(c=>groups[c.group].visible).map(c=>c.mesh);
-  renderer.domElement.style.cursor = ray.intersectObjects(targets,false).length ? 'pointer' : 'default';
+  if(downXY) return; const now=performance.now(); if(now-hoverT<50) return; hoverT=now;
+  renderer.domElement.style.cursor = pick(e.clientX,e.clientY) ? 'pointer' : 'default';
 });
 
 /* ---- init / loop ---- */
