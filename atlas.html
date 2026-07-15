@@ -218,7 +218,14 @@ gltfLoader.load(
     pivot.rotation.set(0,FIT_ROT_Y,0);
     pivot.position.set(FIT_X, FIT_Y, 0);
     // 水平断面(CT)を実骨格にも効かせる：読み込んだ全マテリアルに同じ切断面を渡す
-    pivot.traverse(o=>{ if(o.isMesh && o.material){ (Array.isArray(o.material)?o.material:[o.material]).forEach(mm=>{ mm.clippingPlanes=[clipPlane]; mm.clipShadows=true; }); } });
+    pivot.traverse(o=>{ if(o.isMesh && o.material){ (Array.isArray(o.material)?o.material:[o.material]).forEach(mm=>{
+      mm.clippingPlanes=[clipPlane]; mm.clipShadows=true;
+      /* Z-Anatomyの材質はアプリ用に自己発光(emissive=白)＋金属寄り＝光源が効かず真っ白に潰れる。骨らしい陰影が出るよう中和する */
+      if(mm.emissive) mm.emissive.setHex(0x000000);
+      if('metalness' in mm) mm.metalness = 0.0;
+      if('roughness' in mm) mm.roughness = 0.62;
+      if(mm.color) mm.color.setHex(0xe9e5f2);
+    }); } });
     groups.model.add(pivot);
 
     console.log('Skeleton Loaded');
@@ -505,7 +512,9 @@ const BONE_D={
 };
 function boneJa(raw){
   let n=raw, side='', m;
-  if(m=n.match(/\.(l|r)$/)){ side = (m[1]==='l') ? '（左）' : '（右）'; n=n.slice(0,-2); }
+  /* three.js は glTF のメッシュ名を「空白→_」に変換して使う。書き出し側で左右を __L/__R に埋めてある */
+  if(m=n.match(/__([LR])$/)){ side = (m[1]==='L') ? '（左）' : '（右）'; n=n.slice(0,-3); }
+  n = n.replace(/_/g,' ').trim();
   if(/^Atlas \(C1\)/.test(n)) return '第1頸椎（環椎）';
   if(/^Axis \(C2\)/.test(n))  return '第2頸椎（軸椎）';
   if(m=n.match(/^Vertebra C(\d+)$/)) return '第'+m[1]+'頸椎';
