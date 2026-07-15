@@ -172,7 +172,8 @@ dracoLoader.setDecoderPath(
   'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/'
 );
 
-let skeletonMirror=null; // 全身/半分 切替用
+let skeletonMirror=null; // 半身glbのとき鏡像で全身にする用
+let halfBtn=null;        // 「全身/半分」スイッチ（全身glbなら不要になる）
 
 const gltfLoader = new GLTFLoader();
 gltfLoader.setDRACOLoader(dracoLoader);
@@ -187,16 +188,23 @@ gltfLoader.load(
     const FIT_ROT_Y  = 0;     // 向き
     const MIRROR_SEAM= 0;     // 全身にした時、中央の継ぎ目に隙間/重なりがあれば調整（例 0.02 / -0.02）
 
-    const half = gltf.scene;               // 読み込んだ半身＝矢状断
-    const mirror = half.clone(true);       // 反対側を鏡像で生成
-    mirror.scale.x = -1;
-    mirror.position.x = MIRROR_SEAM;
-    mirror.traverse(o=>{ if(o.material) o.material.side = THREE.DoubleSide; }); // 反転面が消えないように
-    skeletonMirror = mirror;
+    const half = gltf.scene;               // 読み込んだ本体（半身 or 全身）
+    /* 半身(片側)か全身かを自動判定：bboxが x=0 の両側へ有意に伸びていれば全身 */
+    const b0=new THREE.Box3().setFromObject(half);
+    const spanX=Math.max(1e-6, b0.max.x-b0.min.x);
+    const isFull = (b0.min.x<0 && b0.max.x>0 && Math.min(Math.abs(b0.min.x),Math.abs(b0.max.x)) > spanX*0.2);
 
     const modelRoot = new THREE.Group();
     modelRoot.add(half);
-    modelRoot.add(mirror);                 // 全身（半分＋鏡像）
+    if(!isFull){                           // 半身glb → 鏡像を足して全身に
+      const mirror = half.clone(true);
+      mirror.scale.x = -1;
+      mirror.position.x = MIRROR_SEAM;
+      mirror.traverse(o=>{ if(o.material) o.material.side = THREE.DoubleSide; }); // 反転面が消えないように
+      skeletonMirror = mirror;
+      modelRoot.add(mirror);
+    } else if(halfBtn){ halfBtn.style.display='none'; }   // 全身glb → 「全身/半分」スイッチは役目終了（半身は矢状面CTで出せる）
+    console.log('skeleton glb =', isFull ? 'full body (as-is)' : 'half (mirrored)');
 
     // 全身を基準に採寸・センタリング
     const box=new THREE.Box3().setFromObject(modelRoot);
@@ -420,8 +428,8 @@ layers.forEach(L=>{ groups[L.id].visible=!L.off;
   b.onclick=()=>{ groups[L.id].visible=!groups[L.id].visible; b.classList.toggle('on',groups[L.id].visible); };
   layerBox.appendChild(b); });
 
- /* 実骨格の下位スイッチ：全身 ⇄ 半分（矢状断） */
-{ const b=document.createElement('button'); b.className='lbtn'; b.style.color='#cfd8e6';
+ /* 実骨格の下位スイッチ：全身 ⇄ 半分（矢状断）※半身glbのときだけ意味を持つ */
+{ const b=document.createElement('button'); b.className='lbtn'; b.style.color='#cfd8e6'; halfBtn=b;
   let full=true;
   const label=()=>`<span class="nm" style="padding-left:16px"><span style="color:rgba(244,241,255,.72)">└ 実骨格を ${full?'全身':'半分（矢状断）'}</span></span>`;
   b.innerHTML=label();
