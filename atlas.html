@@ -480,26 +480,57 @@ flipChk.onchange=()=>{ flip=flipChk.checked; updateCut(); };
 clipOn.onchange=()=>{ updateCut(); if(clipOn.checked) setCutView(); };
 clip.oninput=updateCut;
 
-/* ---- 実骨格の骨：英名→和名（骨単位。左右は軸未確定なので付けない） ---- */
-function boneJa(raw){ let m;
-  if(/^Atlas_\(C1\)/.test(raw)) return '第1頸椎（環椎）';
-  if(/^Axis_\(C2\)/.test(raw)) return '第2頸椎（軸椎）';
-  if(m=raw.match(/^Cervical_vertebrae_\(C(\d)\)/)) return '第'+m[1]+'頸椎';
-  if(m=raw.match(/^Thoracic_vertebrae_\(T(\d+)\)/)) return '第'+m[1]+'胸椎';
-  if(m=raw.match(/^Lumbar_vertebrae_\(L(\d)\)/)) return '第'+m[1]+'腰椎';
-  if(/^Sacrum/.test(raw)) return '仙骨';
-  if(/^Coccyx/.test(raw)) return '尾骨';
-  if(m=raw.match(/^Rib_\((\d+)\w+\)/)) return '第'+m[1]+'肋骨';
-  if(m=raw.match(/^Costal_cart_of_(\d+)\w+_rib/)) return '第'+m[1]+'肋軟骨';
-  if(/^Manubrium_of_sternum/.test(raw)) return '胸骨柄';
-  if(/^Body_of_sternum/.test(raw)) return '胸骨体';
-  if(m=raw.match(/^(\d)\w{0,2}_metacarpal/)) return '第'+m[1]+'中手骨';
-  if(m=raw.match(/^(Proximal|Middle|Distal)_phalanx_of_.*_of_foot/)) return '足の'+({Proximal:'基節骨',Middle:'中節骨',Distal:'末節骨'}[m[1]]);
-  if(m=raw.match(/^(Proximal|Middle|Distal)_phalanx_of_/)) return '手の'+({Proximal:'基節骨',Middle:'中節骨',Distal:'末節骨'}[m[1]]);
-  if(/tooth|incisor|canine|premolar|molar/i.test(raw)){ const up=/^Upper/.test(raw)?'上':'下'; let t='歯'; if(/incisor/.test(raw))t='切歯'; else if(/canine/.test(raw))t='犬歯'; else if(/premolar/.test(raw))t='小臼歯'; else if(/molar/.test(raw))t='大臼歯'; return up+t; }
-  const D=[[/^Frontal_bone/,'前頭骨'],[/^Occipital_bone/,'後頭骨'],[/^Sphenoid_bone/,'蝶形骨'],[/^Ethmoid_Bone/,'篩骨'],[/^Mandible_bone/,'下顎骨'],[/^Vomer$/,'鋤骨'],[/^Parietal_bone/,'頭頂骨'],[/^Temporal_bone/,'側頭骨'],[/^Nasal_bone/,'鼻骨'],[/^Lacrimal_bone/,'涙骨'],[/^Zygomatic_bone/,'頬骨'],[/^Maxilla_bone/,'上顎骨'],[/^Palatine_bone/,'口蓋骨'],[/^Inferior_nasal_concha/,'下鼻甲介'],[/^Hip_bone/,'寛骨'],[/^Femur/,'大腿骨'],[/^Patella/,'膝蓋骨'],[/^Tibia/,'脛骨'],[/^Fibula/,'腓骨'],[/^Humerus/,'上腕骨'],[/^Radius/,'橈骨'],[/^Ulna/,'尺骨'],[/^Clavicle/,'鎖骨'],[/^Scapula/,'肩甲骨'],[/^Scaphoid/,'舟状骨（手）'],[/^Lunate/,'月状骨'],[/^Triquetrum/,'三角骨'],[/^Pisiform/,'豆状骨'],[/^Trapezium/,'大菱形骨'],[/^Trapezoid/,'小菱形骨'],[/^Capitate/,'有頭骨'],[/^Hamate/,'有鈎骨'],[/^Talus/,'距骨'],[/^Calcaneus/,'踵骨'],[/^Navicular/,'舟状骨（足）'],[/^Cuboid/,'立方骨'],[/^Medial_cuneiform/,'内側楔状骨'],[/^Intermediate_cuneiform/,'中間楔状骨'],[/^Lateral_cuneiform/,'外側楔状骨'],[/^First_metatarsal/,'第1中足骨'],[/^Second_metatarsal/,'第2中足骨'],[/^Third_metatarsal/,'第3中足骨'],[/^Fourth_metatarsal/,'第4中足骨'],[/^Fifth_metatarsal/,'第5中足骨'],[/^Sesamoid_bones_of_hand/,'種子骨（手）'],[/^Sesamoid_bones_of_foot/,'種子骨（足）']];
-  for(const [re,ja] of D){ if(re.test(raw)) return ja; }
-  return raw.replace(/_/g,' ').replace(/\s*r$/,'').trim();   // フォールバック：整形英名
+/* ---- 実骨格の骨：英名→和名（Z-Anatomy命名＝スペース区切り＋.l/.r）。左右はモデル自身の解剖学的左右 ---- */
+const ORD={first:1,second:2,third:3,fourth:4,fifth:5,sixth:6,seventh:7,eighth:8,ninth:9,tenth:10,eleventh:11,twelfth:12};
+const BONE_D={
+  'Frontal bone':'前頭骨','Parietal bone':'頭頂骨','Occipital bone':'後頭骨','Temporal bone':'側頭骨',
+  'Sphenoid bone':'蝶形骨','Ethmoid bone':'篩骨','Nasal bone':'鼻骨','Lacrimal bone':'涙骨',
+  'Zygomatic bone':'頬骨','Maxilla':'上顎骨','Mandible':'下顎骨','Palatine bone':'口蓋骨','Vomer':'鋤骨',
+  'Inferior nasal concha bone':'下鼻甲介','Hyoid bone':'舌骨',
+  'Incus':'キヌタ骨（砧骨）','Malleus':'ツチ骨（槌骨）','Stapes':'アブミ骨（鐙骨）',
+  'Manubrium of sternum':'胸骨柄','Body of sternum':'胸骨体','Xiphoid process':'剣状突起',
+  'Clavicle':'鎖骨','Scapula':'肩甲骨','Humerus':'上腕骨','Radius':'橈骨','Ulna':'尺骨',
+  'Hip bone':'寛骨','Sacrum':'仙骨','Coccyx':'尾骨','Femur':'大腿骨','Patella':'膝蓋骨',
+  'Tibia':'脛骨','Fibula':'腓骨',
+  'Scaphoid bone':'舟状骨（手）','Lunate bone':'月状骨','Triquetrum bone':'三角骨','Pisiform bone':'豆状骨',
+  'Trapezium bone':'大菱形骨','Trapezoid bone':'小菱形骨','Capitate bone':'有頭骨','Hamate bone':'有鈎骨',
+  'Talus':'距骨','Calcaneus':'踵骨','Navicular bone':'舟状骨（足）','Cuboid bone':'立方骨',
+  'Medial cuneiform bone':'内側楔状骨','Intermediate cuneiform bone':'中間楔状骨','Lateral cuneiform bone':'外側楔状骨',
+  'Sesamoid bones of foot':'種子骨（足）',
+  'Thyroid cartilage':'甲状軟骨','Cricoid cartilage':'輪状軟骨','Arytenoid cartilage':'披裂軟骨',
+  'Corniculate cartilage':'小角軟骨','Nasal septal cartilage':'鼻中隔軟骨','Major alar cartilage':'大鼻翼軟骨',
+  'Lateral process of nasal septal cartilage':'鼻中隔軟骨の外側突起',
+  'Sinus of frontal bone':'前頭洞','Sinus of sphenoid bone':'蝶形骨洞',
+  'Anterior cells of ethmoid bone':'篩骨蜂巣（前部）','Middle cells of ethmoid bone':'篩骨蜂巣（中部）','Posterior cells of ethmoid bone':'篩骨蜂巣（後部）',
+};
+function boneJa(raw){
+  let n=raw, side='', m;
+  if(m=n.match(/\.(l|r)$/)){ side = (m[1]==='l') ? '（左）' : '（右）'; n=n.slice(0,-2); }
+  if(/^Atlas \(C1\)/.test(n)) return '第1頸椎（環椎）';
+  if(/^Axis \(C2\)/.test(n))  return '第2頸椎（軸椎）';
+  if(m=n.match(/^Vertebra C(\d+)$/)) return '第'+m[1]+'頸椎';
+  if(m=n.match(/^Vertebra T(\d+)$/)) return '第'+m[1]+'胸椎';
+  if(m=n.match(/^Vertebra L(\d+)$/)) return '第'+m[1]+'腰椎';
+  if((m=n.match(/^(\w+) rib$/i)) && ORD[m[1].toLowerCase()]) return '第'+ORD[m[1].toLowerCase()]+'肋骨'+side;
+  if((m=n.match(/^Costal cartilage of (\w+) rib$/i)) && ORD[m[1].toLowerCase()]) return '第'+ORD[m[1].toLowerCase()]+'肋軟骨'+side;
+  if((m=n.match(/^(\w+) metacarpal bone$/i)) && ORD[m[1].toLowerCase()]) return '第'+ORD[m[1].toLowerCase()]+'中手骨'+side;
+  if((m=n.match(/^(\w+) metatarsal bone$/i)) && ORD[m[1].toLowerCase()]) return '第'+ORD[m[1].toLowerCase()]+'中足骨'+side;
+  if(m=n.match(/^(Proximal|Middle|Distal) phalanx of (\w+) finger of (hand|foot)$/i)){
+    const p={proximal:'基節骨',middle:'中節骨',distal:'末節骨'}[m[1].toLowerCase()];
+    const k=ORD[m[2].toLowerCase()]||'', hf=(m[3].toLowerCase()==='hand');
+    return (hf?'手':'足')+'の第'+k+(hf?'指':'趾')+p+side;
+  }
+  if(/incisor|canine|premolar|molar/i.test(n) && (m=n.match(/^(Upper|Lower) (.+)$/i))){
+    const ul = (m[1].toLowerCase()==='upper') ? '上' : '下', t=m[2].toLowerCase();
+    let name='歯';
+    if(/medial incisor/.test(t)) name='中切歯'; else if(/lateral incisor/.test(t)) name='側切歯';
+    else if(/canine/.test(t)) name='犬歯';
+    else if(/first premolar/.test(t)) name='第1小臼歯'; else if(/second premolar/.test(t)) name='第2小臼歯';
+    else if(/first molar/.test(t)) name='第1大臼歯'; else if(/second molar/.test(t)) name='第2大臼歯';
+    return ul+name+side;
+  }
+  if(BONE_D[n]) return BONE_D[n]+side;
+  return n+side;                                   // フォールバック：英名（既に可読）
 }
 function renderBone(raw, point){
   const ja=boneJa(raw);
@@ -511,7 +542,7 @@ function renderBone(raw, point){
     <div class="f-sub">実骨格の部位（クリックで選択中）</div>
     <div class="f-sec"><h5>解説${tierTag('解剖')}</h5><div class="f-meaning">実解剖モデルの骨。英名：${raw.replace(/_/g,' ')}</div></div>
     <div class="f-sec"><h5>高さ・対応</h5><div class="body">およその高さ：${lvl}${chk&&info[chk]?'　／　近いチャクラ：'+info[chk].name:''}</div></div>
-    <div class="f-note">実骨格＝解剖(実線・計測)の層。名称は Z-Anatomy系モデルのメッシュ名からの近似対応で、骨単位（粗面・棘突起等の下位部位は未分割）。左右は軸未確定のため未表示。真偽は証明しない。</div>`;
+    <div class="f-note">実骨格＝解剖(実線・計測)の層。名称は Z-Anatomy（BodyParts3D 派生／CC BY-SA 4.0）のメッシュ名からの対応で、骨単位（粗面・棘突起等の下位部位はモデルが未分割）。左右はモデル自身の左右表記(.l/.r)に従う。真偽は証明しない。</div>`;
 }
 
 /* ---- raycast: クリック＆ホバー（クリップ面で切り落とした側は無視） ---- */
