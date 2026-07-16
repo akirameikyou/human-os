@@ -218,14 +218,24 @@ gltfLoader.load(
     pivot.rotation.set(0,FIT_ROT_Y,0);
     pivot.position.set(FIT_X, FIT_Y, 0);
     // 水平断面(CT)を実骨格にも効かせる：読み込んだ全マテリアルに同じ切断面を渡す
-    pivot.traverse(o=>{ if(o.isMesh && o.material){ (Array.isArray(o.material)?o.material:[o.material]).forEach(mm=>{
-      mm.clippingPlanes=[clipPlane]; mm.clipShadows=true;
-      /* Z-Anatomyの材質はアプリ用に自己発光(emissive=白)＋金属寄り＝光源が効かず真っ白に潰れる。骨らしい陰影が出るよう中和する */
-      if(mm.emissive) mm.emissive.setHex(0x000000);
-      if('metalness' in mm) mm.metalness = 0.0;
-      if('roughness' in mm) mm.roughness = 0.62;
-      if(mm.color) mm.color.setHex(0xe9e5f2);
-    }); } });
+    /* 材質：Z-Anatomyの自己発光(emissive=白)を中和して骨らしい陰影に。軟骨(cartilage)だけ別マテリアルで淡く色替え */
+    let boneMat=null, cartMat=null;
+    pivot.traverse(o=>{ if(!(o.isMesh && o.material)) return;
+      const mm = Array.isArray(o.material)?o.material[0]:o.material;
+      if(!boneMat){ boneMat=mm;
+        boneMat.clippingPlanes=[clipPlane]; boneMat.clipShadows=true;
+        if(boneMat.emissive) boneMat.emissive.setHex(0x000000);
+        if('metalness' in boneMat) boneMat.metalness=0.0;
+        if('roughness' in boneMat) boneMat.roughness=0.62;
+        if(boneMat.color) boneMat.color.setHex(0xe9e5f2);
+      }
+      if(/cartilage/i.test(o.name)){                 // 肋軟骨・甲状/輪状/披裂/小角軟骨・鼻軟骨など
+        if(!cartMat){ cartMat=boneMat.clone(); cartMat.color.setHex(0xa9d4dd); cartMat.roughness=0.5; cartMat.clippingPlanes=[clipPlane]; cartMat.clipShadows=true; }
+        o.material=cartMat;
+      } else {
+        o.material=boneMat;
+      }
+    });
     groups.model.add(pivot);
 
     console.log('Skeleton Loaded');
