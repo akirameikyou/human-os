@@ -163,7 +163,7 @@ const clipPlane=new THREE.Plane(new THREE.Vector3(0,-1,0),100);
 const materials=[];
 function reg(m){ m.clippingPlanes=[clipPlane]; materials.push(m); return m; }
 
-const groups={ body:new THREE.Group(), skeleton:new THREE.Group(), organ:new THREE.Group(), chakra:new THREE.Group(), model:new THREE.Group(), tenchi:new THREE.Group() };
+const groups={ body:new THREE.Group(), skeleton:new THREE.Group(), organ:new THREE.Group(), chakra:new THREE.Group(), model:new THREE.Group(), tenchi:new THREE.Group(), viscera:new THREE.Group(), shell:new THREE.Group() };
 Object.values(groups).forEach(g=>scene.add(g));
 
 /* ---- GLTFLoader + DRACOLoader: models/skeleton.glb を groups.model へ ---- */
@@ -178,16 +178,50 @@ let halfBtn=null;        // 「全身/半分」スイッチ（全身glbなら不
 const gltfLoader = new GLTFLoader();
 gltfLoader.setDRACOLoader(dracoLoader);
 
+/* 3つのglb(骨格/内臓/外殻)は同一原点。骨格が算出する採寸・センタリングを共有して整列させる */
+const FIT={ h:6.6, x:0, y:-0.3, rotY:0 };   // つまみ：縦幅/左右/上下/向き
+let fitCenter=null, fitScale=null;
+function placeAligned(root, group){
+  root.position.sub(fitCenter);              // 骨格と同じ中心・同じ倍率で整列
+  const pivot=new THREE.Group(); pivot.add(root);
+  pivot.scale.setScalar(fitScale); pivot.rotation.set(0,FIT.rotY,0); pivot.position.set(FIT.x,FIT.y,0);
+  group.add(pivot); return pivot;
+}
+
+/* ---- 内臓：models/organs.glb → groups.viscera（クリックで和名） ---- */
+function loadOrgans(){
+  gltfLoader.load('models/organs.glb', (g)=>{
+    const pivot=placeAligned(g.scene, groups.viscera);
+    let om=null;
+    pivot.traverse(o=>{ if(!(o.isMesh && o.material)) return;
+      const mm=Array.isArray(o.material)?o.material[0]:o.material;
+      if(!om){ om=mm; om.clippingPlanes=[clipPlane]; om.clipShadows=true;
+        if(om.emissive) om.emissive.setHex(0x000000);
+        if('metalness' in om) om.metalness=0.0;
+        if('roughness' in om) om.roughness=0.6;
+        if(om.color) om.color.setHex(0xcf8f8f); }         // 臓器＝暖色
+      o.material=om;
+      if(o.name){ o.userData.organName=o.name; clickable.push({mesh:o, group:'viscera'}); }
+    });
+    console.log('Organs Loaded');
+  }, undefined, e=>console.error('organs load error', e));
+}
+
+/* ---- 外殻：models/shell.glb → groups.shell（半透明の人型包み＝簡易素体の後継） ---- */
+function loadShell(){
+  gltfLoader.load('models/shell.glb', (g)=>{
+    const pivot=placeAligned(g.scene, groups.shell);
+    const sm=new THREE.MeshStandardMaterial({color:0x9f95d6, transparent:true, opacity:0.12, roughness:.85, side:THREE.DoubleSide, depthWrite:false});
+    sm.clippingPlanes=[clipPlane];
+    pivot.traverse(o=>{ if(o.isMesh) o.material=sm; });
+    console.log('Shell Loaded');
+  }, undefined, e=>console.error('shell load error', e));
+}
+
 gltfLoader.load(
   'models/skeleton.glb',
   (gltf)=>{
-    // ==== つまみ ====
-    const FIT_HEIGHT = 6.6;   // 縦幅
-    const FIT_X      = 0;     // 左右（全身は対称なので基本0。ズレたら微調整）
-    const FIT_Y      = -0.3;  // 上下
-    const FIT_ROT_Y  = 0;     // 向き
-    const MIRROR_SEAM= 0;     // 全身にした時、中央の継ぎ目に隙間/重なりがあれば調整（例 0.02 / -0.02）
-
+    const MIRROR_SEAM=0;                    // 半身glbの継ぎ目調整（全身glbでは不使用）
     const half = gltf.scene;               // 読み込んだ本体（半身 or 全身）
     /* 半身(片側)か全身かを自動判定：bboxが x=0 の両側へ有意に伸びていれば全身 */
     const b0=new THREE.Box3().setFromObject(half);
@@ -200,24 +234,19 @@ gltfLoader.load(
       const mirror = half.clone(true);
       mirror.scale.x = -1;
       mirror.position.x = MIRROR_SEAM;
-      mirror.traverse(o=>{ if(o.material) o.material.side = THREE.DoubleSide; }); // 反転面が消えないように
+      mirror.traverse(o=>{ if(o.material) o.material.side = THREE.DoubleSide; });
       skeletonMirror = mirror;
       modelRoot.add(mirror);
-    } else if(halfBtn){ halfBtn.style.display='none'; }   // 全身glb → 「全身/半分」スイッチは役目終了（半身は矢状面CTで出せる）
+    } else if(halfBtn){ halfBtn.style.display='none'; }
     console.log('skeleton glb =', isFull ? 'full body (as-is)' : 'half (mirrored)');
 
-    // 全身を基準に採寸・センタリング
+    // 骨格を基準に採寸・センタリング → fitCenter/fitScale を共有（内臓・外殻もこれに整列）
     const box=new THREE.Box3().setFromObject(modelRoot);
     const size=new THREE.Vector3(); box.getSize(size);
     const center=new THREE.Vector3(); box.getCenter(center);
-    modelRoot.position.sub(center);
-    const pivot=new THREE.Group();
-    pivot.add(modelRoot);
-    const s=FIT_HEIGHT/(size.y||1);
-    pivot.scale.setScalar(s);
-    pivot.rotation.set(0,FIT_ROT_Y,0);
-    pivot.position.set(FIT_X, FIT_Y, 0);
-    // 水平断面(CT)を実骨格にも効かせる：読み込んだ全マテリアルに同じ切断面を渡す
+    fitCenter=center.clone(); fitScale=FIT.h/(size.y||1);
+    const pivot=placeAligned(modelRoot, groups.model);
+
     /* 材質：Z-Anatomyの自己発光(emissive=白)を中和して骨らしい陰影に。軟骨(cartilage)だけ別マテリアルで淡く色替え */
     let boneMat=null, cartMat=null;
     pivot.traverse(o=>{ if(!(o.isMesh && o.material)) return;
@@ -229,19 +258,17 @@ gltfLoader.load(
         if('roughness' in boneMat) boneMat.roughness=0.62;
         if(boneMat.color) boneMat.color.setHex(0xe9e5f2);
       }
-      if(/cartilage/i.test(o.name)){                 // 肋軟骨・甲状/輪状/披裂/小角軟骨・鼻軟骨など
+      if(/cartilage/i.test(o.name)){
         if(!cartMat){ cartMat=boneMat.clone(); cartMat.color.setHex(0xa9d4dd); cartMat.roughness=0.5; cartMat.clippingPlanes=[clipPlane]; cartMat.clipShadows=true; }
         o.material=cartMat;
-      } else {
-        o.material=boneMat;
-      }
+      } else { o.material=boneMat; }
     });
-    groups.model.add(pivot);
 
     console.log('Skeleton Loaded');
     console.log('model native size =', size.toArray().map(v=>+v.toFixed(3)));
-    // 実骨格の各骨をクリック/ホバー対象に（名前つき）
     pivot.traverse(o=>{ if(o.isMesh && o.name){ o.userData.boneName=o.name; clickable.push({mesh:o, group:'model'}); } });
+
+    loadOrgans(); loadShell();             // 骨格の採寸が済んでから整列ロード
   },
   undefined,
   (err)=>{ console.error('Skeleton load error:', err); }
@@ -430,12 +457,14 @@ function selectItem(id){
 
 /* ---- layers UI ---- */
 const layers=[
-  {id:'body',name:'素体（簡易）',kind:'図式',src:'schematic（写実ではない）',color:'#9f95d6'},
+  {id:'shell',name:'外殻（半透明）',kind:'図式',src:'筋・骨から生成した外形',color:'#b9b2e0'},
   {id:'model',name:'実骨格',kind:'解剖',src:'Z-Anatomy系 glTF',color:'#cfd8e6'},
-  {id:'skeleton',name:'簡易骨格（仮）',kind:'図式',src:'schematic（実骨格が本命）',color:'#8f96a3',off:true},
-  {id:'organ',name:'臓器',kind:'解剖',src:'解剖学（概略）',color:'#8fd0c8'},
+  {id:'viscera',name:'実臓器',kind:'解剖',src:'Z-Anatomy系 glTF',color:'#d98c8c',off:true},
   {id:'chakra',name:'チャクラ（立体）',kind:'伝統',src:'ヨーガ／本文',color:'#c9a6ff'},
   {id:'tenchi',name:'天津金木（軸の十字）',kind:'基準',src:'千座神業',color:'#ffffff'},
+  {id:'skeleton',name:'簡易骨格（仮）',kind:'図式',src:'schematic',color:'#8f96a3',off:true},
+  {id:'organ',name:'臓器（簡易・仮）',kind:'図式',src:'schematic',color:'#8fd0c8',off:true},
+  {id:'body',name:'素体（簡易・仮）',kind:'図式',src:'schematic',color:'#9f95d6',off:true},
 ];
 const layerBox=document.getElementById('layerList');
 layers.forEach(L=>{ groups[L.id].visible=!L.off;
@@ -564,6 +593,48 @@ function renderBone(raw, point){
     <div class="f-note">実骨格＝解剖(実線・計測)の層。名称は Z-Anatomy（BodyParts3D 派生／CC BY-SA 4.0）のメッシュ名からの対応で、骨単位（粗面・棘突起等の下位部位はモデルが未分割）。左右はモデル自身の左右表記(.l/.r)に従う。真偽は証明しない。</div>`;
 }
 
+/* ---- 実臓器：英名→和名（Z-Anatomy命名） ---- */
+const ORGAN_D={
+  'Liver':'肝臓','Stomach':'胃','Duodenum':'十二指腸','Pancreas':'膵臓','Gallbladder':'胆嚢',
+  'Kidney':'腎臓','Renal pelvis':'腎盂','Suprarenal gland':'副腎','Urinary bladder':'膀胱',
+  'Ascending colon':'上行結腸','Descending colon':'下行結腸','Transverse colon':'横行結腸','Sigmoid colon':'S状結腸',
+  'Vermiform appendix':'虫垂','Meso-appendix':'虫垂間膜','Mesocolon':'結腸間膜',
+  'Free taenia':'自由ヒモ','Mesocolic taenia':'間膜ヒモ','Omental taenia':'大網ヒモ',
+  'Greater omentum':'大網','Lesser omentum':'小網',
+  'Trachea':'気管','Tongue':'舌','Epiglottis':'喉頭蓋','Pleura':'胸膜',
+  'Nasopharynx':'上咽頭','Oropharynx':'中咽頭','Laryngopharynx':'下咽頭',
+  'Soft palate':'軟口蓋','Uvula of palate':'口蓋垂','Gingiva':'歯肉','Mucosa of nasal cavity':'鼻腔粘膜',
+  'Thyroid gland':'甲状腺','Superior parathyroid gland':'上副甲状腺','Inferior parathyroid gland':'下副甲状腺',
+  'Pineal gland':'松果体','Adenohypophysis':'下垂体前葉','Neurohypophysis':'下垂体後葉',
+  'Parotid gland':'耳下腺','(Accessory parotid gland)':'副耳下腺','Sublingual gland':'舌下腺','Submandibular gland':'顎下腺',
+  'Prostate':'前立腺','Testis':'精巣','Epididymis':'精巣上体','Seminal gland':'精嚢',
+  'Glans penis':'亀頭','Corpus cavernosum of penis':'陰茎海綿体','Corpus spongiosum of penis':'尿道海綿体',
+};
+function organJa(raw){
+  let n=raw, side='', m;
+  if(m=n.match(/__([LR])$/)){ side=(m[1]==='L')?'（左）':'（右）'; n=n.slice(0,-3); }
+  n=n.replace(/_/g,' ').trim();
+  if(/segment of liver/i.test(n)){ const seg=(n.match(/\(([IVX]+)\)/)||[])[1]||''; return '肝臓（区域'+seg+'）'; }
+  if(m=n.match(/^(Superior|Middle|Inferior) lobe of (left|right) lung$/i)){
+    const lv={superior:'上葉',middle:'中葉',inferior:'下葉'}[m[1].toLowerCase()];
+    return (m[2].toLowerCase()==='left'?'左肺':'右肺')+lv;
+  }
+  if(ORGAN_D[n]) return ORGAN_D[n]+side;
+  return n+side;                                   // フォールバック：英名
+}
+function renderOrgan(raw, point){
+  const ja=organJa(raw);
+  const lvl=point?levelName(point.y):''; const chk=point?nearChakra(point.y):null;
+  current=null; chakraMeshes.forEach(mm=>{ mm.scale.setScalar(1); mm.material.opacity=.4; });
+  focusEl.innerHTML=`
+    <div class="f-kick">FOCUS / ORGAN</div>
+    <div class="f-title" style="color:#d98c8c"><span class="fdot"></span>${ja}</div>
+    <div class="f-sub">実臓器の部位（クリックで選択中）</div>
+    <div class="f-sec"><h5>解説${tierTag('解剖')}</h5><div class="f-meaning">実解剖モデルの臓器。英名：${raw.replace(/__[LR]$/,'').replace(/_/g,' ')}</div></div>
+    <div class="f-sec"><h5>高さ・対応</h5><div class="body">およその高さ：${lvl}${chk&&info[chk]?'　／　近いチャクラ：'+info[chk].name:''}</div></div>
+    <div class="f-note">実臓器＝解剖(実線・計測)の層。名称は Z-Anatomy（BodyParts3D 派生／CC BY-SA 4.0）より。真偽は証明しない。</div>`;
+}
+
 /* ---- raycast: クリック＆ホバー（クリップ面で切り落とした側は無視） ---- */
 const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
 function ancestorsVisible(o){ while(o){ if(!o.visible) return false; o=o.parent; } return true; }
@@ -583,6 +654,7 @@ renderer.domElement.addEventListener('pointerup',e=>{
   const h=pick(e.clientX,e.clientY); if(!h) return;
   const o=h.object;
   if(o.userData.boneName) renderBone(o.userData.boneName, h.point);
+  else if(o.userData.organName) renderOrgan(o.userData.organName, h.point);
   else if(o.userData.id) selectItem(o.userData.id);
 });
 /* hover：内容がある対象の上でカーソルを指に（間引き） */
