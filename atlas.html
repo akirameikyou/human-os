@@ -188,19 +188,41 @@ function placeAligned(root, group){
   group.add(pivot); return pivot;
 }
 
-/* ---- 内臓：models/organs.glb → groups.viscera（クリックで和名） ---- */
+/* ---- 内臓：系統別の色分け。覆う膜(大網・腹膜・胸膜)は半透明で下が見える ---- */
+function organColor(raw){ const n=raw.toLowerCase();
+  if(/atrium|ventricle|papillary|leaflet|pulmonary trunk|cardiac/.test(n)) return 0xc0504d;   // 心臓＝赤
+  if(/lung/.test(n)) return 0xe6a6ac;                                                          // 肺＝淡紅
+  if(/liver/.test(n)) return 0x9c6b4f;                                                         // 肝＝赤褐
+  if(/spleen/.test(n)) return 0x8f4a55;                                                        // 脾＝暗赤
+  if(/pancreas/.test(n)) return 0xd8c07a;                                                      // 膵＝黄
+  if(/gall|bile/.test(n)) return 0x7fae6a;                                                     // 胆＝緑
+  if(/kidney|renal|suprarenal/.test(n)) return 0xa86b5a;                                        // 腎・副腎
+  if(/bladder/.test(n)) return 0xd9c98a;                                                       // 膀胱
+  if(/stomach|duoden|colon|intestine|appendix|taenia|rectum|caecum|cecum/.test(n)) return 0xd9a97e; // 消化管＝淡褐
+  if(/omentum|mesocolon|mesentery|meso-|peritoneum|pleura/.test(n)) return 0xe8dcc0;            // 覆う膜＝淡黄
+  if(/trachea|pharynx|larynx|epiglottis|palate|uvula|nasal|bronch/.test(n)) return 0xbcd0da;    // 気道＝淡青
+  if(/thyroid|parathyroid|hypophysis|pineal|gland|gingiva|tongue/.test(n)) return 0xd98c8c;     // 腺・口腔
+  if(/prostate|testis|epididymis|seminal|penis|glans|corpus/.test(n)) return 0xcaa6c0;          // 生殖
+  return 0xcf8f8f;
+}
+const organMats={};
+function organMat(raw){
+  const col=organColor(raw);
+  const cover=/omentum|mesocolon|mesentery|meso-|peritoneum|pleura/i.test(raw);
+  const key=col+(cover?'_t':'');
+  if(!organMats[key]){
+    const m=new THREE.MeshStandardMaterial({color:col, roughness:0.6, metalness:0, side:THREE.DoubleSide});
+    m.clippingPlanes=[clipPlane]; m.clipShadows=true;
+    if(cover){ m.transparent=true; m.opacity=0.4; m.depthWrite=false; }   // 覆う膜は半透明＝下部組織が見える
+    organMats[key]=m;
+  }
+  return organMats[key];
+}
 function loadOrgans(){
   gltfLoader.load('models/organs.glb', (g)=>{
     const pivot=placeAligned(g.scene, groups.viscera);
-    let om=null;
-    pivot.traverse(o=>{ if(!(o.isMesh && o.material)) return;
-      const mm=Array.isArray(o.material)?o.material[0]:o.material;
-      if(!om){ om=mm; om.clippingPlanes=[clipPlane]; om.clipShadows=true;
-        if(om.emissive) om.emissive.setHex(0x000000);
-        if('metalness' in om) om.metalness=0.0;
-        if('roughness' in om) om.roughness=0.6;
-        if(om.color) om.color.setHex(0xcf8f8f); }         // 臓器＝暖色
-      o.material=om;
+    pivot.traverse(o=>{ if(!o.isMesh) return;
+      o.material=organMat(o.name||'');
       if(o.name){ o.userData.organName=o.name; clickable.push({mesh:o, group:'viscera'}); }
     });
     console.log('Organs Loaded');
@@ -609,6 +631,8 @@ const ORGAN_D={
   'Parotid gland':'耳下腺','(Accessory parotid gland)':'副耳下腺','Sublingual gland':'舌下腺','Submandibular gland':'顎下腺',
   'Prostate':'前立腺','Testis':'精巣','Epididymis':'精巣上体','Seminal gland':'精嚢',
   'Glans penis':'亀頭','Corpus cavernosum of penis':'陰茎海綿体','Corpus spongiosum of penis':'尿道海綿体',
+  'Left atrium':'左心房','Right atrium':'右心房','Left ventricle':'左心室','Right ventricle':'右心室',
+  'Pulmonary trunk':'肺動脈幹','Spleen':'脾臓',
 };
 function organJa(raw){
   let n=raw, side='', m;
@@ -619,6 +643,10 @@ function organJa(raw){
     const lv={superior:'上葉',middle:'中葉',inferior:'下葉'}[m[1].toLowerCase()];
     return (m[2].toLowerCase()==='left'?'左肺':'右肺')+lv;
   }
+  if(m=n.match(/papillary muscle of (right|left) ventricle/i)) return (m[1].toLowerCase()==='right'?'右':'左')+'心室 乳頭筋';
+  if(/atrioventricular valve/i.test(n)) return '房室弁尖';
+  if(/pulmonary valve/i.test(n)) return '肺動脈弁尖';
+  if(/coronary leaflet/i.test(n)) return '大動脈弁尖';
   if(ORGAN_D[n]) return ORGAN_D[n]+side;
   return n+side;                                   // フォールバック：英名
 }
